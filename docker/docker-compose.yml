@@ -1,0 +1,30 @@
+services:
+    postgres:
+        image: postgres:latest
+        environment:
+            POSTGRES_USER:
+            POSTGRES_PASSWORD:
+            POSTGRES_DB:
+        ports:
+            - "5432:5432"
+        volumes:
+            - ./data/postgres:/var/lib/postgresql/data 
+        networks:
+            - finora-network
+
+    pgadmin:
+        image: dpage/pgadmin4:latest
+        volumes:
+            - ./data/pgadmin:/var/lib/pgadmin
+        networks:
+            - finora-network
+        depends_on:
+            - postgres
+        ports:
+            - "7001:80"
+        environment:
+            PGADMIN_DEFAULT_EMAIL:
+            PGADMIN_DEFAULT_PASSWORD:
+
+networks:
+    finora-network:
