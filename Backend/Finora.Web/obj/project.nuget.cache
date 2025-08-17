@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "dgSpecHash": "jsNZGsKHF9I=",
+  "success": true,
+  "projectFilePath": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Web\\Finora.Web.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jkacz\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.3\\microsoft.aspnetcore.openapi.9.0.3.nupkg.sha512",
+    "C:\\Users\\jkacz\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512",
+    "C:\\Users\\jkacz\\.nuget\\packages\\rabbitmq.client\\7.1.2\\rabbitmq.client.7.1.2.nupkg.sha512",
+    "C:\\Users\\jkacz\\.nuget\\packages\\system.io.pipelines\\8.0.0\\system.io.pipelines.8.0.0.nupkg.sha512",
+    "C:\\Users\\jkacz\\.nuget\\packages\\system.threading.ratelimiting\\8.0.0\\system.threading.ratelimiting.8.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -17,8 +17,6 @@ namespace Finora.Models
         public string PasswordSalt { get; set; } = string.Empty;
         public bool IsDeleted { get; set; } = true;
     }
-
-
 }
 
 namespace Finora.MocksGenerator

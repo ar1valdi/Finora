@@ -1,6 +1,7 @@
+name: finora-dev
 services:
     postgres:
-        image: postgres:latest
+        image: postgres:17
         environment:
             POSTGRES_USER:
             POSTGRES_PASSWORD:
@@ -25,6 +26,17 @@ services:
         environment:
             PGADMIN_DEFAULT_EMAIL:
             PGADMIN_DEFAULT_PASSWORD:
+
+    rmq:
+        image: rabbitmq:4-management
+        hostname: rmq
+        networks:
+            - finora-network
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        volumes:
+            - ./data/rmq:/var/lib/rabbitmq
 
 networks:
     finora-network:
