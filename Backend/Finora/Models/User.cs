@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Finora.Models
 {
-    internal class User : EntityBase
+    public class User : EntityBase
     {
         public string FirstName { get; set; } = string.Empty;
         public string? SecondName { get; set; } = string.Empty;

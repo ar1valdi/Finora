@@ -24,5 +24,14 @@ namespace Finora.Backend.Models.Concrete
         
         [JsonPropertyName("data")]
         public object Data { get; set; } = new object();
+
+        [JsonPropertyName("statusCode")]
+        public int StatusCode { get; set; } = 200;
+
+        [JsonPropertyName("errors")]
+        public List<string> Errors { get; set; } = new List<string>();
+
+        [JsonPropertyName("jwt")]
+        public string? Jwt { get; set; } = string.Empty;
     }
 }

@@ -9,4 +9,8 @@ export interface MessageEnvelope {
     messageId?: string;
     type: string;
     data: unknown;
+    statusCode?: number;
+    errors?: string[];
+    jwt?: string;
 }
+

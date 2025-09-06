@@ -143,11 +143,12 @@ export class RabbitMqService {
       `/queue/${replyQueueName}`,
       (message: any) => {
         try {
+          console.log('Received message from reply queue', message);
           const response = JSON.parse(message.body);
           const msgCorrelationId = message.headers['correlation-id'] || response?.correlationId;
           if (msgCorrelationId === correlationId) {
             try { subscription.unsubscribe(); } catch {}
-            resolve(response);
+            resolve(response.data);
           }
         } catch (error) {
           reject(error);

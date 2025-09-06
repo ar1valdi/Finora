@@ -1,1 +1,38 @@
-<p>users works!</p>
+<div class="users-page">
+    <h1>Users</h1>
+    <div class="users-container">
+        <div class="users-list">
+            <!-- Header row -->
+            <div class="users-header">
+                <div class="col-name">Name</div>
+                <div class="col-email">Email</div>
+                <div class="col-dob">Date of Birth</div>
+                <div class="col-status">Status</div>
+                <div class="col-id">ID</div>
+            </div>
+            
+            <!-- User rows -->
+            @for (user of users; track user.id) {
+                <div class="user-row">
+                    <div class="col-name" data-label="Name">
+                        <span class="user-name">{{ user.firstName }} {{ user.secondName }} {{ user.lastName }}</span>
+                    </div>
+                    <div class="col-email" data-label="Email">
+                        <span class="user-email">{{ user.email }}</span>
+                    </div>
+                    <div class="col-dob" data-label="Date of Birth">
+                        <span class="user-dob">{{ user.dateOfBirth | date:'MMM dd, yyyy' }}</span>
+                    </div>
+                    <div class="col-status" data-label="Status">
+                        <span class="user-status" [class.deleted]="user.isDeleted">
+                            {{ user.isDeleted ? 'Deleted' : 'Active' }}
+                        </span>
+                    </div>
+                    <div class="col-id" data-label="ID">
+                        <span class="user-id">{{ user.id }}</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

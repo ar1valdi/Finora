@@ -6,6 +6,11 @@ using Finora.Web.Configuration;
 using Finora.Web.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
+using Finora.Handlers;
+using Finora.Extensions;
+using Finora.Services;
+using Mapster;
+using Finora.Backend.Persistance.Configs.Adapters;
 
 var host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
@@ -13,14 +18,25 @@ var host = Host.CreateDefaultBuilder()
                 var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
                 services.AddDbContext<FinoraDbContext>(options =>
                     options.UseNpgsql(connectionString, npgsqlOptions => 
-                        npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "Finora"))
+                    {
+                        npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "Finora");
+                    })
                 );
 
                 services.Configure<RabbitMqConfiguration>(
                     context.Configuration.GetSection("RabbitMQ"));
 
                 services.AddSingleton<IRabbitMqService, RabbitMqService>();
+                services.AddScoped<IPasswordService, PasswordService>();
                 services.AddTransient<IRabbitListener, RabbitListener>();
+                
+                services.AddRepositories();
+                
+                TypeAdapterConfig.GlobalSettings.Scan(typeof(UserTypeAdapter).Assembly);
+                
+                services.AddMediatR(cfg => {
+                    cfg.RegisterServicesFromAssembly(typeof(GetAllUsersHandler).Assembly);
+                });
             })
             .Build();
 

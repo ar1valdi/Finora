@@ -14,6 +14,6 @@ public abstract class EntityTypeConfigurationBase<TEntity> : IEntityTypeConfigur
         builder.HasKey(e => e.Id);
 
         builder.Property(e => e.CreatedAt)
-               .IsRequired();
+            .IsRequired();
     }
 }

@@ -1,6 +1,8 @@
-﻿namespace Finora.Messages.Users
+﻿using Finora.Messages.Interfaces;
+
+namespace Finora.Messages.Users
 {
-    internal class AddUserRequest
+    public class AddUserRequest : ICommand
     {
         public Guid Id { get; set; }
         public string FirstName { get; set; } = string.Empty;

@@ -13,11 +13,13 @@ namespace Finora.Web.Services
         Task<(Guid messageId, Guid correlationId)> PublishMessage(
             string exchangeName,
             string routingKey,
+            Guid correlationId,
             object message,
             IChannel channel,
             CancellationToken ct);
         Task<(Guid messageId, Guid correlationId)> PublishMessage(
             string queueName,
+            Guid correlationId,
             object message,
             IChannel channel,
             CancellationToken ct);
@@ -31,6 +33,12 @@ namespace Finora.Web.Services
         private IConnection? _connection;
         private bool _disposed = false;
         private readonly RabbitMqConfiguration _configuration;
+        
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        };
         
         public RabbitMqService(ILogger<RabbitMqService> logger, IOptions<RabbitMqConfiguration> configuration)
         {
@@ -69,16 +77,18 @@ namespace Finora.Web.Services
         
         public async Task<(Guid messageId, Guid correlationId)> PublishMessage(
             string queueName,
+            Guid correlationId,
             object message,
             IChannel channel,
             CancellationToken ct)
         {
-            return await PublishMessage(string.Empty, queueName, message, channel, ct);
+            return await PublishMessage(string.Empty, queueName, correlationId, message, channel, ct);
         }
 
         public async Task<(Guid messageId, Guid correlationId)> PublishMessage(
             string exchangeName,
             string routingKey,
+            Guid correlationId,
             object message,
             IChannel channel,
             CancellationToken ct)
@@ -90,15 +100,12 @@ namespace Finora.Web.Services
 
             if (msgWithCorrId is null)
                 throw new ArgumentException("Message must implement IMessageWithCorrelationId", nameof(message));
-
-            var correlationId = msgWithCorrId.CorrelationId == Guid.Empty ? Guid.NewGuid() : msgWithCorrId.CorrelationId;
             var messageId = msgWithCorrId.MessageId == Guid.Empty ? Guid.NewGuid() : msgWithCorrId.MessageId;
-            msgWithCorrId.CorrelationId = correlationId;
             msgWithCorrId.MessageId = messageId;
 
             try
             {
-                var messageBody = JsonSerializer.Serialize(message);
+                var messageBody = JsonSerializer.Serialize(message, JsonOptions);
                 var body = Encoding.UTF8.GetBytes(messageBody);
 
                 var properties = new BasicProperties();
@@ -161,6 +168,13 @@ namespace Finora.Web.Services
                 cancellationToken: ct);
             await channel.QueueDeclareAsync(
                 queriesQueue,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                cancellationToken: ct);
+
+            await channel.QueueDeclareAsync(
+                "DEBUG_RESPONSES",
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
