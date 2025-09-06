@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Finora.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e387c68f75523e2bbbccf58031b0602f577af4dd")]
 [assembly: System.Reflection.AssemblyProductAttribute("Finora.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Finora.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

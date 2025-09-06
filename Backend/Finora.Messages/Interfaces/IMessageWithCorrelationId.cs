@@ -1,7 +1,7 @@
 ﻿namespace Finora.Messages.Interfaces
 {
-    public interface IMessageWithCorrelationId
+    public abstract class IMessage
     {
-        public Guid CorrelationId { get; set; }
+        public Guid MessageId { get; set; } = Guid.Empty;
     }
 }

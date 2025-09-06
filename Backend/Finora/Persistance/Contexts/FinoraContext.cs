@@ -14,6 +14,8 @@ namespace Finora.Persistance.Contexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasDefaultSchema("Finora");
+
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(FinoraDbContext).Assembly);
         }
     }

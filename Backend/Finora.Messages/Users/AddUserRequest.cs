@@ -1,14 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Finora.Messages.Users.DTOs
+﻿namespace Finora.Messages.Users
 {
-    internal class UserDTO
+    internal class AddUserRequest
     {
+        public Guid Id { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string? SecondName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
-        public bool IsDeleted { get; set; } = true;
+        public string Password { get; set; } = string.Empty;
     }
 }

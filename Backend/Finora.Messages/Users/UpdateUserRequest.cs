@@ -1,10 +1,10 @@
-using System.ComponentModel.DataAnnotations.Schema;
-using Finora.Messages.Interfaces;
+﻿using Finora.Messages.Interfaces;
 
 namespace Finora.Messages.Users
 {
-    public class AddUserResponse : IResponse
+    public class UpdateUserRequest : ICommand
     {
+        public Guid Id { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string? SecondName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;

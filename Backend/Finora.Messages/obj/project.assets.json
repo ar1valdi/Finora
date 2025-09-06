@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Messages\\Finora.Messages.csproj",
+      "projectUniqueName": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Messages\\Finora.Messages.csproj",
       "projectName": "Finora.Messages",
-      "projectPath": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Messages\\Finora.Messages.csproj",
+      "projectPath": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Messages\\Finora.Messages.csproj",
       "packagesPath": "C:\\Users\\jkacz\\.nuget\\packages\\",
-      "outputPath": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Messages\\obj\\",
+      "outputPath": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Messages\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

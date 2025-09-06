@@ -1,7 +1,6 @@
 ﻿namespace Finora.Messages.Interfaces
 {
-    public abstract class IQuery : IMessageWithCorrelationId
+    public abstract class IQuery : IMessage
     {
-        public Guid CorrelationId { get; set; } = Guid.NewGuid();
     }
 }

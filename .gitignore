@@ -3,3 +3,4 @@ data
 .code
 bin
 obj
+node_modules

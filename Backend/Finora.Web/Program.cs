@@ -9,16 +9,6 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Configure RabbitMQ
-builder.Services.Configure<RabbitMqConfiguration>(
-    builder.Configuration.GetSection("RabbitMQ"));
-
-// Register RabbitMQ service as singleton for connection reuse
-builder.Services.AddSingleton<IRabbitMqService, RabbitMqService>();
-
-// Register message publisher facade
-builder.Services.AddScoped<IMessagePublisher, MessagePublisher>();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,7 +1,6 @@
 ﻿namespace Finora.Messages.Interfaces
 {
-    public abstract class ICommand : IMessageWithCorrelationId
+    public abstract class ICommand : IMessage
     {
-        public Guid CorrelationId { get; set; } = Guid.NewGuid();
     }
 }

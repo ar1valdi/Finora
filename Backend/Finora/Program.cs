@@ -1,33 +1,60 @@
-﻿// See https://aka.ms/new-console-template for more information
-using Finora.Models;
-using Finora.Persistance.Contexts;
+﻿using Finora.Persistance.Contexts;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Finora.MocksGenerator;
-
-Console.WriteLine("Hello, World!");
-
+using Finora.Web.Configuration;
+using Finora.Web.Services;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 
 var host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
-                var connectionString = "Host=127.0.0.1;Port=5432;Database=finora;Username=admin;Password=admin";
+                var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
                 services.AddDbContext<FinoraDbContext>(options =>
-                options.UseNpgsql(connectionString));
+                    options.UseNpgsql(connectionString, npgsqlOptions => 
+                        npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "Finora"))
+                );
+
+                services.Configure<RabbitMqConfiguration>(
+                    context.Configuration.GetSection("RabbitMQ"));
+
+                services.AddSingleton<IRabbitMqService, RabbitMqService>();
+                services.AddTransient<IRabbitListener, RabbitListener>();
             })
             .Build();
 
 using var scope = host.Services.CreateScope();
+
 var db = scope.ServiceProvider.GetRequiredService<FinoraDbContext>();
+var commandsListener = scope.ServiceProvider.GetRequiredService<IRabbitListener>();
+var queriesListener = scope.ServiceProvider.GetRequiredService<IRabbitListener>();
+var rabbitConfig = scope.ServiceProvider.GetRequiredService<IOptions<RabbitMqConfiguration>>();
+var rabbitMqService = scope.ServiceProvider.GetRequiredService<IRabbitMqService>();
 
 db.Database.Migrate();
 
-var users = Mocks.GenerateMockUsers();
-db.Users.AddRange(users);
-db.SaveChanges();
+await rabbitMqService.EnsureTopology(CancellationToken.None);
 
-foreach (var user in db.Users.ToList())
+var cancellationTokenSource = new CancellationTokenSource();
+var cancellationToken = cancellationTokenSource.Token;
+
+var listeners = new List<Task> {
+    commandsListener.Listen(
+        rabbitConfig.Value.RequestQueue,
+        cancellationToken),
+
+    queriesListener.Listen(
+        rabbitConfig.Value.QueryQueue,
+        cancellationToken),
+};
+
+var consoleInput = Console.ReadLine();
+while (consoleInput != "quit")
 {
-    Console.WriteLine($"User: {user.FullName}");
+    consoleInput = Console.ReadLine();
 }
+
+cancellationTokenSource.Cancel();
+
+await Task.WhenAll(listeners);

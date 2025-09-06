@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "jsNZGsKHF9I=",
+  "dgSpecHash": "TPCfGPNfT0k=",
   "success": true,
-  "projectFilePath": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Web\\Finora.Web.csproj",
+  "projectFilePath": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Web\\Finora.Web.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jkacz\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.3\\microsoft.aspnetcore.openapi.9.0.3.nupkg.sha512",
     "C:\\Users\\jkacz\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512",

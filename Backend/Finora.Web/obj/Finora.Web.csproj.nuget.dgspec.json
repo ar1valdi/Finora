@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Web\\Finora.Web.csproj": {}
+    "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Web\\Finora.Web.csproj": {}
   },
   "projects": {
-    "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Messages\\Finora.Messages.csproj": {
+    "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Messages\\Finora.Messages.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Messages\\Finora.Messages.csproj",
+        "projectUniqueName": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Messages\\Finora.Messages.csproj",
         "projectName": "Finora.Messages",
-        "projectPath": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Messages\\Finora.Messages.csproj",
+        "projectPath": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Messages\\Finora.Messages.csproj",
         "packagesPath": "C:\\Users\\jkacz\\.nuget\\packages\\",
-        "outputPath": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Messages\\obj\\",
+        "outputPath": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Messages\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -69,14 +69,14 @@
         }
       }
     },
-    "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Web\\Finora.Web.csproj": {
+    "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Web\\Finora.Web.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Web\\Finora.Web.csproj",
+        "projectUniqueName": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Web\\Finora.Web.csproj",
         "projectName": "Finora.Web",
-        "projectPath": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Web\\Finora.Web.csproj",
+        "projectPath": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Web\\Finora.Web.csproj",
         "packagesPath": "C:\\Users\\jkacz\\.nuget\\packages\\",
-        "outputPath": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Web\\obj\\",
+        "outputPath": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Web\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -97,8 +97,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Messages\\Finora.Messages.csproj": {
-                "projectPath": "D:\\studia\\sem_6\\KSR\\Finora\\Finora.Messages\\Finora.Messages.csproj"
+              "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Messages\\Finora.Messages.csproj": {
+                "projectPath": "D:\\studia\\sem_6\\KSR\\Finora\\Backend\\Finora.Messages\\Finora.Messages.csproj"
               }
             }
           }

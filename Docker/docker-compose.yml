@@ -35,8 +35,11 @@ services:
         ports:
             - "5672:5672"
             - "15672:15672"
+            - "15674:15674"
         volumes:
             - ./data/rmq:/var/lib/rabbitmq
+            - ./rabbitmq.conf:/etc/rabbitmq/conf.d/10-defaults.conf
+        entrypoint: ["/bin/sh", "-c", "rabbitmq-plugins enable rabbitmq_web_stomp && rabbitmq-server"]
 
 networks:
     finora-network:
