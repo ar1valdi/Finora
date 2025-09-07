@@ -4,10 +4,11 @@ using Finora.Repositories.Interfaces;
 using Finora.Models;
 using Finora.Services;
 using Mapster;
+using Finora.Messages.Wrappers;
 
 namespace Finora.Handlers;
 
-public class AddUserHandler : IRequestHandler<AddUserRequest, object>
+public class AddUserHandler : IRequestHandler<AddUserRequest, RabbitResponse<object>>
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordService _passwordService;
@@ -18,9 +19,8 @@ public class AddUserHandler : IRequestHandler<AddUserRequest, object>
         _passwordService = passwordService;
     }
 
-    public async Task<object> Handle(AddUserRequest request, CancellationToken cancellationToken)
+    public async Task<RabbitResponse<object>> Handle(AddUserRequest request, CancellationToken cancellationToken)
     {
-        // Hash the password
         var hashedPassword = _passwordService.HashPassword(request.Password);
 
         var user = new User
@@ -36,15 +36,13 @@ public class AddUserHandler : IRequestHandler<AddUserRequest, object>
             IsDeleted = false,
         };
 
-
         var addedUser = await _userRepository.AddAsync(user, cancellationToken);
         var userDto = addedUser.Adapt<UserDTO>();
 
-        return new
+        return new RabbitResponse<object>
         {
-            Success = true,
-            Message = "User added successfully",
-            Data = userDto
+            Data = userDto,
+            StatusCode = 201
         };
     }
 }

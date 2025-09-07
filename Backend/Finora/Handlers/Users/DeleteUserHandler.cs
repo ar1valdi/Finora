@@ -2,10 +2,11 @@ using MediatR;
 using Finora.Messages.Users;
 using Finora.Repositories.Interfaces;
 using Finora.Models;
+using Finora.Messages.Wrappers;
 
 namespace Finora.Handlers;
 
-public class DeleteUserHandler : IRequestHandler<DeleteUserRequest, object>
+public class DeleteUserHandler : IRequestHandler<DeleteUserRequest, RabbitResponse<object>>
 {
     private readonly IUserRepository _userRepository;
 
@@ -14,30 +15,29 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserRequest, object>
         _userRepository = userRepository;
     }
 
-    public async Task<object> Handle(DeleteUserRequest request, CancellationToken cancellationToken)
+    public async Task<RabbitResponse<object>> Handle(DeleteUserRequest request, CancellationToken cancellationToken)
     {
-        // Parse the ID from string to Guid
         if (!Guid.TryParse(request.Id, out var userId))
         {
             throw new ArgumentException($"Invalid user ID format: {request.Id}");
         }
 
-        // Get existing user
         var existingUser = await _userRepository.GetByIdAsync(userId, cancellationToken);
         
         if (existingUser == null)
         {
-            throw new ArgumentException($"User with ID {request.Id} not found");
+            return new RabbitResponse<object>
+            {
+                StatusCode = 404
+            };
         }
 
-        // Delete user from repository
-        await _userRepository.DeleteAsync(existingUser, cancellationToken);
+        existingUser.IsDeleted = true;
+        await _userRepository.UpdateAsync(existingUser, cancellationToken);
 
-        return new
+        return new RabbitResponse<object>
         {
-            Success = true,
-            Message = "User deleted successfully",
-            Data = new { Id = request.Id }
+            StatusCode = 204
         };
     }
 }

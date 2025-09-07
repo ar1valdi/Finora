@@ -2,6 +2,12 @@ using BCrypt.Net;
 
 namespace Finora.Services;
 
+public interface IPasswordService
+{
+    string HashPassword(string password);
+    bool VerifyPassword(string password, string hashedPassword);
+}
+
 public class PasswordService : IPasswordService
 {
     private const int WorkFactor = 12;

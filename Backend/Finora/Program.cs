@@ -58,10 +58,12 @@ var cancellationToken = cancellationTokenSource.Token;
 var listeners = new List<Task> {
     commandsListener.Listen(
         rabbitConfig.Value.RequestQueue,
+        "Command",
         cancellationToken),
 
     queriesListener.Listen(
         rabbitConfig.Value.QueryQueue,
+        "Query",
         cancellationToken),
 };
 

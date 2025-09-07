@@ -43,6 +43,6 @@
                 <span *ngIf="form.get('password')?.errors?.['required']">Password is required</span>
             </div>
         </div>
-        <button type="submit">Submit</button>
+        <button type="submit" [disabled]="form.invalid || isSubmitted">Submit</button>
     </form>
 </div>

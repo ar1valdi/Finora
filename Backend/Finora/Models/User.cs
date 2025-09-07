@@ -14,7 +14,6 @@ namespace Finora.Models
         public string Email { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string PasswordHash { get; set; } = string.Empty;
-        public string PasswordSalt { get; set; } = string.Empty;
         public bool IsDeleted { get; set; } = true;
     }
 }
@@ -35,7 +34,6 @@ namespace Finora.MocksGenerator
                     Email = "alice.smith@example.com",
                     DateOfBirth = new DateTime(1990, 5, 14),
                     PasswordHash = "hash1",
-                    PasswordSalt = "salt1",
                     IsDeleted = false
                 },
                 new User
@@ -46,7 +44,6 @@ namespace Finora.MocksGenerator
                     Email = "bob.johnson@example.com",
                     DateOfBirth = new DateTime(1985, 8, 22),
                     PasswordHash = "hash2",
-                    PasswordSalt = "salt2",
                     IsDeleted = false
                 },
                 new User
@@ -57,7 +54,6 @@ namespace Finora.MocksGenerator
                     Email = "charlie.brown@example.com",
                     DateOfBirth = new DateTime(1995, 12, 2),
                     PasswordHash = "hash3",
-                    PasswordSalt = "salt3",
                     IsDeleted = false
                 },
                 new User
@@ -68,7 +64,6 @@ namespace Finora.MocksGenerator
                     Email = "diana.taylor@example.com",
                     DateOfBirth = new DateTime(1992, 3, 10),
                     PasswordHash = "hash4",
-                    PasswordSalt = "salt4",
                     IsDeleted = false
                 },
                 new User
@@ -79,7 +74,6 @@ namespace Finora.MocksGenerator
                     Email = "edward.wilson@example.com",
                     DateOfBirth = new DateTime(1988, 7, 30),
                     PasswordHash = "hash5",
-                    PasswordSalt = "salt5",
                     IsDeleted = false
                 }
             };

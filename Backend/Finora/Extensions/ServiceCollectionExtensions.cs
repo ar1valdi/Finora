@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using Finora.Repositories.Interfaces;
 
 namespace Finora.Extensions;
 
@@ -27,6 +28,8 @@ public static class ServiceCollectionExtensions
                 services.AddScoped(repositoryInterface, implementation);
             }
         }
+
+        services.AddScoped<IUnitOfWork, Repositories.UnitOfWork>();
 
         return services;
     }

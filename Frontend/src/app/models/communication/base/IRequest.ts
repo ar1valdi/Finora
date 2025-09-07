@@ -3,14 +3,11 @@ export enum MessageType {
     QUERY = 2
 }
 
-export interface MessageEnvelope {
+export interface IRequest {
     messageType: MessageType;
-    correlationId?: string;
     messageId?: string;
     type: string;
+    userId?: string;
     data: unknown;
-    statusCode?: number;
-    errors?: string[];
-    jwt?: string;
 }
 

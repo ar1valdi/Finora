@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { UsersService } from '../../../services/users.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-add-user-form',
@@ -11,6 +12,8 @@ import { UsersService } from '../../../services/users.service';
   styleUrl: './add-user-form.component.scss'
 })
 export class AddUserFormComponent {
+  afterSubmit = output();
+
   form = new FormGroup({
     firstName: new FormControl('', [Validators.required]),
     secondName: new FormControl(''),
@@ -20,11 +23,20 @@ export class AddUserFormComponent {
     password: new FormControl('', [Validators.required]),
   });
 
-  constructor(private usersService: UsersService) {}
+  isSubmitted = false;
+
+  constructor(private usersService: UsersService, private router: Router) {}
   
   onSubmit() {
+    if (this.isSubmitted) {
+      return;
+    }
+    
+    this.isSubmitted = true;
+
     if (!this.validateForm()) {
       this.form.markAllAsTouched();
+      this.isSubmitted = false;
       return;
     }
 
@@ -36,7 +48,8 @@ export class AddUserFormComponent {
       dateOfBirth: this.form.value.dateOfBirth ? new Date(this.form.value.dateOfBirth) : new Date(),
       password: this.form.value.password ?? '',
     }).then((data) => {
-      console.log('User added', data);
+      this.isSubmitted = false;
+      this.afterSubmit.emit();
     });
   }
 

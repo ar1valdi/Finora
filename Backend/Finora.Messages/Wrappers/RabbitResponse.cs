@@ -4,7 +4,8 @@ namespace Finora.Messages.Wrappers
 {
     public class RabbitResponse<T> : IMessage
     {
-        public Guid MessageId { get; set; } = Guid.Empty;
         public T? Data { get; set; } = default;
+        public int StatusCode { get; set; } = 200;
+        public string[] Errors { get; set; } = new string[0];
     }
 }

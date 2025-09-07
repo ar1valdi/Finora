@@ -1,8 +1,10 @@
 import { Injectable, signal } from '@angular/core';
 import { Client, StompSubscription } from '@stomp/stompjs';
-import { QueueError } from '../models/communication/base/QueueError';
 import { v4 as uuidv4 } from 'uuid';
-import { MessageEnvelope, MessageType } from '../models/communication/base/MessageEnvelope';
+import { IRequest, MessageType } from '../models/communication/base/IRequest';
+import { IResponse } from '../models/communication/base/IResponse';
+import { IMessage } from '@stomp/stompjs';
+import { CurrentUserService } from './current-user.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +24,7 @@ export class RabbitMqService {
   private onConnect: () => void;
   private onStompError: (frame: any) => void;
 
-  constructor() {
+  constructor(private currentUserService: CurrentUserService) {
     this.client = new Client({
       brokerURL: this.brokerURL,
       connectHeaders: this.connectHeaders,
@@ -68,7 +70,7 @@ export class RabbitMqService {
     return this.client;
   }
 
-  async send(message: MessageEnvelope, timeout: number = 10000): Promise<any> {
+  async send(message: IRequest, timeout: number = 10000): Promise<any> {
     const client = await this.ensureConnection();
     
     if (!client.connected) {
@@ -78,10 +80,10 @@ export class RabbitMqService {
     return new Promise((resolve, reject) => {
       const isCommand = message.messageType === MessageType.COMMAND;
 
-      const correlationId = message.correlationId ? message.correlationId : uuidv4();
+      const correlationId = uuidv4();
       const messageId = message.messageId ? message.messageId : uuidv4();
-      message.correlationId = correlationId;
       message.messageId = messageId;
+      message.userId = this.currentUserService.getCurrentUser()?.id;
 
       const routingKey = isCommand ? 'command' : 'query';
 
@@ -106,9 +108,11 @@ export class RabbitMqService {
         try { subscription.unsubscribe(); } catch {}
         reject({
           correlationId: correlationId,
-          messageType: isCommand ? 'command' : 'query',
-          error: 'Timeout'
-        } as QueueError);
+          errors: ['Timeout'],
+          statusCode: 504,
+          data: null,
+          messageId: messageId,
+        } as IResponse);
       }, timeout);
     });
   }
@@ -118,7 +122,7 @@ export class RabbitMqService {
     routingKey: string,
     correlationId: string,
     replyQueueName: string,
-    payload: MessageEnvelope
+    payload: IRequest
   ) {
     client.publish({
       destination: `/exchange/${this.requestsExchange}/${routingKey}`,
@@ -136,19 +140,21 @@ export class RabbitMqService {
     client: Client,
     replyQueueName: string,
     correlationId: string,
-    resolve: (response: MessageEnvelope) => void,
+    resolve: (response: IResponse) => void,
     reject: (error: any) => void
   ): StompSubscription {
     const subscription = client.subscribe(
       `/queue/${replyQueueName}`,
-      (message: any) => {
+      (message: IMessage) => {
         try {
           console.log('Received message from reply queue', message);
+
           const response = JSON.parse(message.body);
           const msgCorrelationId = message.headers['correlation-id'] || response?.correlationId;
+          
           if (msgCorrelationId === correlationId) {
             try { subscription.unsubscribe(); } catch {}
-            resolve(response.data);
+            resolve(response.data as IResponse);
           }
         } catch (error) {
           reject(error);

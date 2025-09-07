@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { MessageEnvelope, MessageType } from '../../models/communication/base/MessageEnvelope';
+import { IRequest, MessageType } from '../../models/communication/base/IRequest';
 import { RabbitMqService } from '../../services/rabbit-mq.service';
 
 @Component({
@@ -20,7 +20,7 @@ export class HomeComponent {
       messageId: '',
       type: 'TestCommand',
       data: 'Simple command!'
-    } as MessageEnvelope;
+    } as IRequest;
 
     this.rabbitMqService.send(message).then((response) => {
       console.log(response);
@@ -40,7 +40,7 @@ export class HomeComponent {
       messageId: '',
       type: 'TestQuery',
       data: 'Simple query!'
-    } as MessageEnvelope;
+    } as IRequest;
 
     this.rabbitMqService.send(message).then((response) => {
       console.log(response);

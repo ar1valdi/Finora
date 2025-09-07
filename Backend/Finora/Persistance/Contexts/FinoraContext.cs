@@ -1,11 +1,13 @@
 ﻿using Finora.Models;
 using Microsoft.EntityFrameworkCore;
+using Finora.Kernel;
 
 namespace Finora.Persistance.Contexts
 {
     public class FinoraDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         public FinoraDbContext(DbContextOptions<FinoraDbContext> options)
             : base(options)

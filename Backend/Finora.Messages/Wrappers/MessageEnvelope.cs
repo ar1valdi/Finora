@@ -13,9 +13,6 @@ namespace Finora.Backend.Models.Concrete
         [JsonPropertyName("messageType")]
         public MessageType MessageType { get; set; }
         
-        [JsonPropertyName("correlationId")]
-        public string CorrelationId { get; set; } = string.Empty;
-        
         [JsonPropertyName("messageId")]
         public string MessageId { get; set; } = string.Empty;
         
@@ -24,14 +21,8 @@ namespace Finora.Backend.Models.Concrete
         
         [JsonPropertyName("data")]
         public object Data { get; set; } = new object();
-
-        [JsonPropertyName("statusCode")]
-        public int StatusCode { get; set; } = 200;
-
-        [JsonPropertyName("errors")]
-        public List<string> Errors { get; set; } = new List<string>();
-
-        [JsonPropertyName("jwt")]
-        public string? Jwt { get; set; } = string.Empty;
+        
+        [JsonPropertyName("userId")]
+        public string UserId { get; set; } = string.Empty;
     }
 }

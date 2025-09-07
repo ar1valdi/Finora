@@ -1,5 +1,6 @@
 export interface IResponse {
-    correlationId: string;
     messageId: string;
+    statusCode: number;
+    errors: string[];
     data: unknown;
 }

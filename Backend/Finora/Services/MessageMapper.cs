@@ -1,5 +1,10 @@
 using System.Text.Json;
+using Finora.Messages.Auth;
 using Finora.Messages.Users;
+using Finora.Messages.Interfaces;
+
+namespace Finora.Backend.Services;
+
 public static class MessageMapper
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -14,10 +19,11 @@ public static class MessageMapper
         {"AddUser", typeof(AddUserRequest)},
         {"UpdateUser", typeof(UpdateUserRequest)},
         {"DeleteUser", typeof(DeleteUserRequest)},
-        {"GetUser", typeof(GetUserRequest)}
+        {"GetUser", typeof(GetUserRequest)},
+        {"Login", typeof(LoginRequest)}
     };
 
-    public static Type Map(string message)
+    private static Type Map(string message)
     {
         if (_messageMap.TryGetValue(message, out var type)) {
             return type;
@@ -26,10 +32,10 @@ public static class MessageMapper
         }
     }
 
-    public static object DeserializeMessage(string messageType, string jsonData)
+    public static IMessage DeserializeMessage(string messageType, string jsonData)
     {
         var type = Map(messageType);
-        return JsonSerializer.Deserialize(jsonData, type, JsonOptions) 
+        return JsonSerializer.Deserialize(jsonData, type, JsonOptions) as IMessage
             ?? throw new InvalidOperationException($"Failed to deserialize {messageType} from JSON");
     }
 }
