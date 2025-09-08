@@ -1,4 +1,5 @@
 ﻿using Finora.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Finora.Backend.Persistance.Configs.Database
@@ -8,6 +9,11 @@ namespace Finora.Backend.Persistance.Configs.Database
         public override void Configure(EntityTypeBuilder<User> builder)
         {
             base.Configure(builder);
+        
+            builder.HasOne(u => u.BankAccount)
+                .WithOne(b => b.User)
+                .HasForeignKey<User>("BankAccountId")
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

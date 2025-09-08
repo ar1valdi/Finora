@@ -22,7 +22,7 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserRequest, RabbitRespon
             throw new ArgumentException($"Invalid user ID format: {request.Id}");
         }
 
-        var existingUser = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        var existingUser = await _userRepository.GetByIdWithBankAccountAsync(userId, cancellationToken);
         
         if (existingUser == null)
         {
@@ -33,6 +33,10 @@ public class DeleteUserHandler : IRequestHandler<DeleteUserRequest, RabbitRespon
         }
 
         existingUser.IsDeleted = true;
+        if (existingUser.BankAccount != null)
+        {
+            existingUser.BankAccount.IsClosed = true;
+        }
         await _userRepository.UpdateAsync(existingUser, cancellationToken);
 
         return new RabbitResponse<object>

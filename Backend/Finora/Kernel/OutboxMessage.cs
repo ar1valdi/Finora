@@ -4,7 +4,16 @@ public class OutboxMessage : EntityBase
 {
     public string ReplyTo { get; set; } = string.Empty;
     public Guid CorrelationId { get; set; } = Guid.Empty;
-    public object Response { get; set; } = new object();
+    public string Response { get; set; } = string.Empty;
     public ulong DeliveryTag { get; set; } = 0;
+    public OutboxMessageStatus Status { get; set; } = OutboxMessageStatus.Pending;
 }
+
+public enum OutboxMessageStatus
+{
+    Pending,
+    Sent,
+    Failed
+}
+
 

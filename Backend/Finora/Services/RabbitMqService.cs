@@ -5,6 +5,8 @@ using Finora.Web.Configuration;
 using Microsoft.Extensions.Logging;
 using Finora.Messages.Interfaces;
 using Microsoft.Extensions.Options;
+using Finora.Kernel;
+using Finora.Backend.Common;
 
 namespace Finora.Web.Services
 {
@@ -23,6 +25,16 @@ namespace Finora.Web.Services
             object message,
             IChannel channel,
             CancellationToken ct);
+
+        Task<(Guid messageId, Guid correlationId)> PublishFromJson(
+            string exchangeName,
+            string routingKey,
+            Guid correlationId,
+            Guid messageId,
+            string jsonMessage,
+            IChannel channel,
+            CancellationToken ct);
+
         Task<IChannel> GetChannel(CancellationToken ct);
         Task EnsureTopology(CancellationToken ct);
     }
@@ -33,12 +45,6 @@ namespace Finora.Web.Services
         private IConnection? _connection;
         private bool _disposed = false;
         private readonly RabbitMqConfiguration _configuration;
-        
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
-        };
         
         public RabbitMqService(ILogger<RabbitMqService> logger, IOptions<RabbitMqConfiguration> configuration)
         {
@@ -74,7 +80,7 @@ namespace Finora.Web.Services
 
             return await _connection.CreateChannelAsync(null, ct);
         }
-        
+
         public async Task<(Guid messageId, Guid correlationId)> PublishMessage(
             string queueName,
             Guid correlationId,
@@ -105,26 +111,8 @@ namespace Finora.Web.Services
 
             try
             {
-                var messageBody = JsonSerializer.Serialize(message, JsonOptions);
-                var body = Encoding.UTF8.GetBytes(messageBody);
-
-                var properties = new BasicProperties();
-                properties.CorrelationId = correlationId.ToString();
-                properties.MessageId = messageId.ToString();
-                properties.Persistent = true;
-
-                await channel.BasicPublishAsync(
-                    exchange: exchangeName,
-                    routingKey: routingKey,
-                    mandatory: true,
-                    basicProperties: properties,
-                    body: body,
-                    cancellationToken: ct);
-
-                _logger.LogInformation(
-                    "Message published: msgId={MessageId}, corrId={CorrelationId}, exchange={QueueName}, routing key={RoutingKey}",
-                    messageId, correlationId, exchangeName, routingKey);
-
+                var messageBody = JsonSerializer.Serialize(message, JsonConfig.JsonOptions);
+                await PublishFromJson(exchangeName, routingKey, correlationId, messageId, messageBody, channel, ct);
                 return (messageId, correlationId);
             }
             catch (Exception ex)
@@ -134,6 +122,37 @@ namespace Finora.Web.Services
                     messageId, correlationId, exchangeName, routingKey);
                 throw;
             }
+        }
+
+        public async Task<(Guid messageId, Guid correlationId)> PublishFromJson(
+            string exchangeName,
+            string routingKey,
+            Guid correlationId,
+            Guid messageId,
+            string jsonMessage,
+            IChannel channel,
+            CancellationToken ct)
+        {
+            var body = Encoding.UTF8.GetBytes(jsonMessage);
+
+            var properties = new BasicProperties();
+            properties.CorrelationId = correlationId.ToString();
+            properties.MessageId = messageId.ToString();
+            properties.Persistent = true;
+
+            await channel.BasicPublishAsync(
+                exchange: exchangeName,
+                routingKey: routingKey,
+                mandatory: true,
+                basicProperties: properties,
+                body: body,
+                cancellationToken: ct);
+
+            _logger.LogInformation(
+                "Message published: msgId={MessageId}, corrId={CorrelationId}, exchange={QueueName}, routing key={RoutingKey}",
+                messageId, correlationId, exchangeName, routingKey);
+
+            return (messageId, correlationId);
         }
 
         public async Task EnsureTopology(CancellationToken ct)
@@ -192,6 +211,8 @@ namespace Finora.Web.Services
                 routingKey: _configuration.QueryRoutingKey,
                 cancellationToken: ct
             );
+
+            await channel.DisposeAsync();
         }
 
         public void Dispose()

@@ -20,6 +20,8 @@ export class AuthService {
       messageType: MessageType.QUERY
     }
 
+    console.log('Sending login message:', message);
+
     return this.rabbitMqService.send(message).then((response: User) => {
       this.currentUserService.setCurrentUser(response);
       return response;

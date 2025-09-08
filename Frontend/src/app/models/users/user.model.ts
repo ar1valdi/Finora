@@ -6,4 +6,5 @@ export interface User {
   email: string;
   dateOfBirth: string;
   isDeleted: boolean;
+  bankAccountId: string;
 }

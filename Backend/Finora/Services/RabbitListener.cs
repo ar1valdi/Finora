@@ -9,6 +9,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Finora.Repositories.Interfaces;
 using Finora.Kernel;
+using Finora.Backend.Common;
 
 namespace Finora.Web.Services;
 
@@ -20,18 +21,13 @@ public interface IRabbitListener
 public class RabbitListener(
     IRabbitMqService rabbitMqService,
     ILogger<RabbitListener> logger,
-    IServiceProvider serviceProvider
+    IServiceProvider serviceProvider,
+    IOutboxMessageRepository outboxRepo
 ) : IRabbitListener
 {
     private IChannel? _channel;
     private const int MONITOR_REPLY_QUEUE_INTERVAL = 1000;
     
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
-
     public async Task Listen(string queueName, string? acceptingCqsType = null, CancellationToken cancellationToken = default)
     {
         _channel = await rabbitMqService.GetChannel(cancellationToken);
@@ -48,7 +44,7 @@ public class RabbitListener(
                 logger.LogInformation("Received message from queue {QueueName}", queueName);
 
                 var message = Encoding.UTF8.GetString(args.Body.ToArray());
-                var envelope = JsonSerializer.Deserialize<MessageEnvelope>(message, JsonOptions);
+                var envelope = JsonSerializer.Deserialize<MessageEnvelope>(message, JsonConfig.JsonOptions);
 
                 if (envelope is null)
                 {
@@ -64,6 +60,14 @@ public class RabbitListener(
                 if (acceptingCqsType is not null && cqsType != acceptingCqsType)
                 {
                     throw new InvalidOperationException($"Message type {cqsType} is not accepted by this listener");
+                }
+
+                var corr = string.IsNullOrEmpty(correlationId) ? Guid.Empty : Guid.Parse(correlationId);
+                if (corr != Guid.Empty && await outboxRepo.IsInOutbox(corr, cancellationToken))
+                {
+                    logger.LogInformation("Message with correlation id {CorrelationId} already processed. Acknowledging and skipping.", correlationId);
+                    await _channel.BasicAckAsync(args.DeliveryTag, false, cancellationToken);
+                    return;
                 }
 
                 logger.LogInformation("Message details:\n" +
@@ -92,26 +96,18 @@ public class RabbitListener(
 
                 if (replyTo is not null && !handlerCts.IsCancellationRequested)
                 {
-                    var corr = string.IsNullOrEmpty(correlationId) ? Guid.Empty : Guid.Parse(correlationId);
                     outboxMsg = new OutboxMessage
                     {
                         ReplyTo = replyTo,
                         CorrelationId = corr,
-                        Response = response,
+                        Response = JsonSerializer.Serialize(response, JsonConfig.JsonOptions),
                         DeliveryTag = args.DeliveryTag
-                    };                
+                    };
+                    await outboxRepo.AddAsync(outboxMsg, handlerCts.Token);
                 }
                 
-                await unitOfWork.CommitAsync(outboxMsg, handlerCts.Token);
+                await unitOfWork.CommitAsync(handlerCts.Token);
                 await responseMonitoringCts.CancelAsync();
-
-                if (replyTo is not null && !handlerCts.IsCancellationRequested)
-                {
-                    var corr = correlationId is null ? Guid.Empty : Guid.Parse(correlationId);
-                    logger.LogInformation("Replying to message corr={corr} on {replyTo} queue", corr.ToString(), replyTo);
-                    await rabbitMqService.PublishMessage(replyTo, corr, response, _channel, cancellationToken);
-                    await rabbitMqService.PublishMessage("DEBUG_RESPONSES", corr, response, _channel, cancellationToken);
-                }
 
                 await _channel.BasicAckAsync(args.DeliveryTag, false, cancellationToken);
 
@@ -158,6 +154,16 @@ public class RabbitListener(
                 await cts.CancelAsync();
                 break;
             }
+        }
+
+        await channel.DisposeAsync();
+    }
+
+    ~RabbitListener()
+    {
+        if (_channel is not null)
+        {
+            _channel.Dispose();
         }
     }
 }

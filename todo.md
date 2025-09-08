@@ -1,23 +1,23 @@
 # z instrukcji
-- transakcyjnosc operacji 
+/ transakcyjnosc operacji 
     - transactional outbox pattern
     - kazdy handler chodzi w db transaction, a razem z commitem idzie zapis do tabeli outbox
     - osobny proces/watek (do przemyslenia) odsyla do kolejek
-
-    - rozwazyc co jezeli gdzies pojdzie nie tak i gdzie moze pojsc, bo jak pojdzie to zostana wiszace bez konca wiadomosci
 / jakos obsluzyc timeouty na kolejce i backendzie
     - cancellation tokeny strzelajace jezeli kolejka odpowiedzi sie usunela (front przestal)
-
-- przekazanie komendy dalej do nastepnej aplikacji (mailowej)
-- implementacja fail-fast
-- handshake + circuit breaker
-- konteneryzacja
 
 # funkcjonlnosci
 - wysylanie kasy
 - historia
 - ATM simulator
 - zarzadzanie balansem z panelu administratora
+
+- przekazanie komendy dalej do nastepnej aplikacji (mailowej)
+- implementacja fail-fast
+- handshake + circuit breaker
+- konteneryzacja
+
+- !!! queries nie muszą być w transakcjach
 
 # ze zdrowego myslenia
 - requeue problem (tymczasowy fix: bez requeue)

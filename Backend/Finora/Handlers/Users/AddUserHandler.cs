@@ -23,6 +23,14 @@ public class AddUserHandler : IRequestHandler<AddUserRequest, RabbitResponse<obj
     {
         var hashedPassword = _passwordService.HashPassword(request.Password);
 
+        var account = new BankAccount
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = DateTime.Now,
+            Balance = 0,
+            IsClosed = false,
+        };
+
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -34,6 +42,8 @@ public class AddUserHandler : IRequestHandler<AddUserRequest, RabbitResponse<obj
             DateOfBirth = DateTime.SpecifyKind(request.DateOfBirth, DateTimeKind.Unspecified),
             PasswordHash = hashedPassword,
             IsDeleted = false,
+            BankAccount = account,
+            BankAccountId = account.Id,
         };
 
         var addedUser = await _userRepository.AddAsync(user, cancellationToken);

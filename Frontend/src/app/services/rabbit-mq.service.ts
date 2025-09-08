@@ -5,6 +5,7 @@ import { IRequest, MessageType } from '../models/communication/base/IRequest';
 import { IResponse } from '../models/communication/base/IResponse';
 import { IMessage } from '@stomp/stompjs';
 import { CurrentUserService } from './current-user.service';
+import { NotificationService } from './notification.service';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +25,7 @@ export class RabbitMqService {
   private onConnect: () => void;
   private onStompError: (frame: any) => void;
 
-  constructor(private currentUserService: CurrentUserService) {
+  constructor(private currentUserService: CurrentUserService, private notificationService: NotificationService) {
     this.client = new Client({
       brokerURL: this.brokerURL,
       connectHeaders: this.connectHeaders,
@@ -135,7 +136,6 @@ export class RabbitMqService {
     });
   }
 
-  // idea: create a queue per user session, not per message
   private subscribeTemporaryReplyQueue(
     client: Client,
     replyQueueName: string,
@@ -154,7 +154,13 @@ export class RabbitMqService {
           
           if (msgCorrelationId === correlationId) {
             try { subscription.unsubscribe(); } catch {}
-            resolve(response.data as IResponse);
+            if (response.statusCode.toString().startsWith('2')) {
+              resolve(response.data as IResponse);
+            } else {
+              debugger;
+              this.notificationService.showError(response.statusCode + ': ' + response.errors.join(', '));
+              reject(response.errors);
+            }
           }
         } catch (error) {
           reject(error);

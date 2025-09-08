@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <Folder Include="docker\data\" />
-    <Folder Include="Persistance\Migrations\" />
   </ItemGroup>
 
   <ItemGroup>

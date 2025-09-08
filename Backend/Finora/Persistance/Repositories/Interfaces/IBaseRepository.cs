@@ -10,5 +10,6 @@ public interface IBaseRepository<T> where T : EntityBase
     Task<(IEnumerable<T>, int)> GetPagedAsync(int page, int pageSize, Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default);
     Task<T> AddAsync(T entity, CancellationToken cancellationToken = default);
     Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
+    Task UpdateRangeAsync(IEnumerable<T> entity, CancellationToken cancellationToken = default);
     Task DeleteAsync(T entity, CancellationToken cancellationToken = default);
 }

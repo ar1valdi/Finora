@@ -7,6 +7,7 @@
         @if (currentUser) {
             <a class="nav-button" routerLink="/account">{{currentUser.firstName}} {{currentUser.lastName}}</a>
             <a class="nav-button" (click)="logout()">Logout</a>
+            <a class="nav-button" routerLink="/atm">ATM</a>
         }
         @else {
             <a class="nav-button" routerLink="/login" [queryParams]="{ mode: 'register' }">Register</a>

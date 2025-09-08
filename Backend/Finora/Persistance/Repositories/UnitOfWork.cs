@@ -1,6 +1,5 @@
 using Finora.Persistance.Contexts;
 using Finora.Repositories.Interfaces;
-using Finora.Kernel;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Finora.Repositories;
@@ -26,7 +25,7 @@ public class UnitOfWork : IUnitOfWork
         return _currentTransaction;
     }
 
-    public async Task CommitAsync(OutboxMessage? outboxMsg, CancellationToken cancellationToken = default)
+    public async Task CommitAsync(CancellationToken cancellationToken = default)
     {
         if (_currentTransaction == null)
         {
@@ -35,10 +34,6 @@ public class UnitOfWork : IUnitOfWork
 
         try
         {
-            if (outboxMsg != null)
-            {
-                _context.OutboxMessages.Add(outboxMsg);
-            }
             await _context.SaveChangesAsync(cancellationToken);
             await _currentTransaction.CommitAsync(cancellationToken);
         }

@@ -26,4 +26,9 @@ public class UserRepository : BaseRepository<User>, IUserRepository
     {
         return await _dbSet.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
+
+    public async Task<User?> GetByIdWithBankAccountAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet.Include(u => u.BankAccount).FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+    }
 }

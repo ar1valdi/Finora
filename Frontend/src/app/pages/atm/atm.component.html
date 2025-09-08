@@ -1,0 +1,50 @@
+<div class="atm-container">
+  <h1>ATM</h1>
+  
+  <form (ngSubmit)="processTransaction()" #atmFormRef="ngForm" class="atm-form">
+    <div class="form-group">
+      <label for="amount">Amount:</label>
+      <input 
+        type="number" 
+        id="amount" 
+        [(ngModel)]="atmForm.amount" 
+        name="amount" 
+        required 
+        min="0.01" 
+        step="0.01"
+        placeholder="Enter amount"
+        class="form-input">
+    </div>
+
+    <div class="form-group">
+      <label>Operation:</label>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input 
+            type="radio" 
+            [(ngModel)]="atmForm.operation" 
+            name="operation" 
+            value="deposit">
+          <span class="radio-label">Deposit</span>
+        </label>
+        
+        <label class="radio-option">
+          <input 
+            type="radio" 
+            [(ngModel)]="atmForm.operation" 
+            name="operation" 
+            value="withdraw">
+          <span class="radio-label">Withdraw</span>
+        </label>
+      </div>
+    </div>
+
+    <button 
+      type="submit" 
+      [disabled]="loading || !atmFormRef.valid"
+      class="submit-button"
+      [class.loading]="loading">
+      {{ loading ? 'Processing...' : 'Process Transaction' }}
+    </button>
+  </form>
+</div>

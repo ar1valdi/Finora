@@ -1,0 +1,149 @@
+.transfer-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.transfer-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 40px;
+  max-width: 500px;
+  width: 100%;
+  
+  h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 2.2em;
+    font-weight: 300;
+  }
+}
+
+.transfer-form {
+  .form-group {
+    margin-bottom: 25px;
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #555;
+      font-size: 0.95em;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e1e5e9;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      background-color: #f8f9fa;
+
+      &:focus {
+        outline: none;
+        border-color: #007bff;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      }
+
+      &:invalid {
+        border-color: #dc3545;
+      }
+
+      &::placeholder {
+        color: #adb5bd;
+      }
+    }
+  }
+
+  .button-group {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+
+    button {
+      flex: 1;
+      padding: 15px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+    }
+
+    .cancel-btn {
+      background-color: #6c757d;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background-color: #545b62;
+        transform: translateY(-2px);
+      }
+    }
+
+    .submit-btn {
+      background-color: #28a745;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background-color: #218838;
+        transform: translateY(-2px);
+      }
+
+      &.loading {
+        background-color: #ffc107;
+        color: #333;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .transfer-container {
+    padding: 15px;
+    align-items: flex-start;
+    padding-top: 50px;
+  }
+
+  .transfer-card {
+    padding: 30px 20px;
+    
+    h1 {
+      font-size: 1.8em;
+    }
+  }
+
+  .transfer-form {
+    .form-group {
+      margin-bottom: 20px;
+      
+      .form-input {
+        padding: 12px;
+      }
+    }
+
+    .button-group {
+      flex-direction: column;
+      gap: 10px;
+      
+      button {
+        padding: 12px 20px;
+      }
+    }
+  }
+}

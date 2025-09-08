@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using Finora.Repositories.Interfaces;
 
-namespace Finora.Extensions;
+namespace Finora.Backend.Common.Extensions;
 
 public static class ServiceCollectionExtensions
 {

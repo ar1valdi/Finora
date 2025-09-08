@@ -7,10 +7,10 @@ using Finora.Web.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
 using Finora.Handlers;
-using Finora.Extensions;
 using Finora.Services;
 using Mapster;
 using Finora.Backend.Persistance.Configs.Adapters;
+using Finora.Backend.Common.Extensions;
 
 var host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
@@ -29,6 +29,7 @@ var host = Host.CreateDefaultBuilder()
                 services.AddSingleton<IRabbitMqService, RabbitMqService>();
                 services.AddScoped<IPasswordService, PasswordService>();
                 services.AddTransient<IRabbitListener, RabbitListener>();
+                services.AddTransient<IOutboxSender, OutboxSender>();
                 
                 services.AddRepositories();
                 
@@ -40,13 +41,17 @@ var host = Host.CreateDefaultBuilder()
             })
             .Build();
 
-using var scope = host.Services.CreateScope();
+using var startupScope = host.Services.CreateScope();
+using var commandsScope = startupScope.ServiceProvider.CreateScope();
+using var queriesScope = startupScope.ServiceProvider.CreateScope();
+using var outboxSenderScope = startupScope.ServiceProvider.CreateScope();
 
-var db = scope.ServiceProvider.GetRequiredService<FinoraDbContext>();
-var commandsListener = scope.ServiceProvider.GetRequiredService<IRabbitListener>();
-var queriesListener = scope.ServiceProvider.GetRequiredService<IRabbitListener>();
-var rabbitConfig = scope.ServiceProvider.GetRequiredService<IOptions<RabbitMqConfiguration>>();
-var rabbitMqService = scope.ServiceProvider.GetRequiredService<IRabbitMqService>();
+var db = startupScope.ServiceProvider.GetRequiredService<FinoraDbContext>();
+var commandsListener = commandsScope.ServiceProvider.GetRequiredService<IRabbitListener>();
+var queriesListener = queriesScope.ServiceProvider.GetRequiredService<IRabbitListener>();
+var outboxSender = outboxSenderScope.ServiceProvider.GetRequiredService<IOutboxSender>();
+var rabbitConfig = startupScope.ServiceProvider.GetRequiredService<IOptions<RabbitMqConfiguration>>();
+var rabbitMqService = startupScope.ServiceProvider.GetRequiredService<IRabbitMqService>();
 
 db.Database.Migrate();
 
@@ -65,6 +70,8 @@ var listeners = new List<Task> {
         rabbitConfig.Value.QueryQueue,
         "Query",
         cancellationToken),
+
+    outboxSender.Run(100, cancellationToken)
 };
 
 var consoleInput = Console.ReadLine();
