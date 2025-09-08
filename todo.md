@@ -7,10 +7,10 @@
     - cancellation tokeny strzelajace jezeli kolejka odpowiedzi sie usunela (front przestal)
 
 # funkcjonlnosci
-- wysylanie kasy
-- historia
-- ATM simulator
-- zarzadzanie balansem z panelu administratora
+/ wysylanie kasy
+/ historia
+/ ATM simulator
+/ zarzadzanie balansem z panelu administratora
 
 - przekazanie komendy dalej do nastepnej aplikacji (mailowej)
 - implementacja fail-fast
