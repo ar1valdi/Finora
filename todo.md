@@ -13,7 +13,7 @@
 / zarzadzanie balansem z panelu administratora
 
 / przekazanie komendy dalej do nastepnej aplikacji (mailowej)
-- implementacja fail-fast
+/ implementacja fail-fast
 - handshake + circuit breaker
 - konteneryzacja
 

@@ -1,3 +1,4 @@
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Finora.Validation;
@@ -11,11 +12,11 @@ public class RequestValidator : IRequestValidator
         _logger = logger;
     }
 
-    public async Task<ValidationResult> ValidateAsync<T>(T request, CancellationToken cancellationToken = default) where T : class
+    public ValidationResult Validate<T>(T request, CancellationToken cancellationToken = default) where T : class
     {
         if (request == null)
         {
-            return ValidationResult.Failure("Request cannot be null");
+            return new ValidationResult { IsValid = false, Errors = ["Request cannot be null"] };
         }
 
         var errors = new List<string>();
@@ -27,11 +28,9 @@ public class RequestValidator : IRequestValidator
             var value = property.GetValue(request);
             var propertyType = property.PropertyType;
             
-            // Skip nullable properties (they end with ?)
             if (propertyType.Name.EndsWith("Nullable`1") || property.Name.Contains("?"))
                 continue;
 
-            // Check strings - must not be null or empty
             if (propertyType == typeof(string))
             {
                 if (string.IsNullOrWhiteSpace(value?.ToString()))
@@ -39,7 +38,6 @@ public class RequestValidator : IRequestValidator
                     errors.Add($"{property.Name} cannot be empty");
                 }
             }
-            // Check Guids - must not be empty
             else if (propertyType == typeof(Guid))
             {
                 if (value == null || (Guid)value == Guid.Empty)
@@ -47,7 +45,6 @@ public class RequestValidator : IRequestValidator
                     errors.Add($"{property.Name} cannot be empty");
                 }
             }
-            // Check other value types - just not null
             else if (propertyType.IsValueType)
             {
                 if (value == null)
@@ -57,8 +54,12 @@ public class RequestValidator : IRequestValidator
             }
         }
 
-        var result = errors.Any() ? ValidationResult.Failure(errors.ToArray()) : ValidationResult.Success();
-        
+        var result = new ValidationResult
+        {
+            IsValid = !errors.Any(),
+            Errors = errors
+        };
+
         if (!result.IsValid)
         {
             _logger.LogWarning("Validation failed for {RequestType}: {Errors}", 

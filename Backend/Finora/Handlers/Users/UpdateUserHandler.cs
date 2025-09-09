@@ -34,7 +34,7 @@ public class UpdateUserHandler : IRequestHandler<UpdateUserRequest, RabbitRespon
         existingUser.SecondName =  existingUser.SecondName;
         existingUser.LastName = string.IsNullOrEmpty(request.LastName) ? existingUser.LastName : request.LastName;
         existingUser.Email = string.IsNullOrEmpty(request.Email) ? existingUser.Email : request.Email;
-        existingUser.DateOfBirth = DateTime.SpecifyKind(request.DateOfBirth, DateTimeKind.Unspecified);
+        existingUser.DateOfBirth = request.DateOfBirth is null ? existingUser.DateOfBirth : DateTime.SpecifyKind(request.DateOfBirth.Value, DateTimeKind.Unspecified);
         
         if (!string.IsNullOrEmpty(request.Password))
         {

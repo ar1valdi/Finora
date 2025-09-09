@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace Finora.Validation;
 
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : notnull
+    where TRequest : class
 {
     private readonly IRequestValidator _validator;
     private readonly ILogger<ValidationBehavior<TRequest, TResponse>> _logger;
@@ -19,7 +19,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
     {
         _logger.LogDebug("Validating request of type {RequestType}", typeof(TRequest).Name);
 
-        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        var validationResult = _validator.Validate(request, cancellationToken);
 
         if (!validationResult.IsValid)
         {

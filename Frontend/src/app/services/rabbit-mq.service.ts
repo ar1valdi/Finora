@@ -86,6 +86,8 @@ export class RabbitMqService {
       message.messageId = messageId;
       message.userId = this.currentUserService.getCurrentUser()?.id;
 
+
+      console.log(message);
       const routingKey = isCommand ? 'command' : 'query';
 
       const replyQueueName = `responses.${correlationId}.${uuidv4()}`;
@@ -157,7 +159,6 @@ export class RabbitMqService {
             if (response.statusCode.toString().startsWith('2')) {
               resolve(response.data as IResponse);
             } else {
-              debugger;
               this.notificationService.showError(response.statusCode + ': ' + response.errors.join(', '));
               reject(response.errors);
             }

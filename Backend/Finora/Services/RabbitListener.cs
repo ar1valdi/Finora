@@ -11,6 +11,8 @@ using Finora.Repositories.Interfaces;
 using Finora.Kernel;
 using Finora.Backend.Common;
 using Finora.Services;
+using System.ComponentModel.DataAnnotations;
+using Finora.Messages.Wrappers;
 
 namespace Finora.Web.Services;
 
@@ -36,6 +38,9 @@ public class RabbitListener(
         var consumer = new AsyncEventingBasicConsumer(_channel);
 
         var shouldWrapInTransaction = acceptingCqsType == "Command";
+
+        string? replyTo = null;
+        Guid corr = Guid.Empty;
 
         consumer.ReceivedAsync += async (sender, args) =>
         {
@@ -64,7 +69,7 @@ public class RabbitListener(
 
                 var messageId = envelope.MessageId;
                 var correlationId = args.BasicProperties.CorrelationId;
-                var replyTo = args.BasicProperties.ReplyTo;
+                replyTo = args.BasicProperties.ReplyTo;
                 var msgType = envelope.Type;
                 var cqsType = envelope.MessageType.ToString();
 
@@ -73,7 +78,7 @@ public class RabbitListener(
                     throw new InvalidOperationException($"Message type {cqsType} is not accepted by this listener");
                 }
 
-                var corr = string.IsNullOrEmpty(correlationId) ? Guid.Empty : Guid.Parse(correlationId);
+                corr = string.IsNullOrEmpty(correlationId) ? Guid.Empty : Guid.Parse(correlationId);
                 if (corr != Guid.Empty && await outboxRepo.IsInOutbox(corr, cancellationToken))
                 {
                     logger.LogInformation("Message with correlation id {CorrelationId} already processed. Acknowledging and skipping.", correlationId);
@@ -148,11 +153,43 @@ public class RabbitListener(
                     await unitOfWork.RollbackAsync();
                 }
                 logger.LogError(ex, "Failed to process message from queue {QueueName}. DeliveryTag: {DeliveryTag}", queueName, args.DeliveryTag);
+            
+                try {
+                    if (replyTo is not null)
+                    {
+                        var response = GetErrorRabbitMessageFromException(ex, replyTo, corr);
+                        await outboxRepo.AddAsync(new OutboxMessage
+                        {
+                            RoutingKey = replyTo,
+                            CorrelationId = corr,
+                            Response = JsonSerializer.Serialize(response, JsonConfig.JsonOptions),
+                            DeliveryTag = args.DeliveryTag
+                        }, cancellationToken);
+                    }
+                } catch {
+                    logger.LogError("Failed to add error message to outbox. DeliveryTag: {DeliveryTag}", args.DeliveryTag);
+                }
             }
         };
 
         logger.LogInformation("Listening to {QueueName}...", queueName);
         await _channel.BasicConsumeAsync(queueName, false, consumer, cancellationToken);
+    }
+
+    private RabbitResponse<object> GetErrorRabbitMessageFromException(Exception ex, string replyTo, Guid correlationId)
+    {
+        var statusCode = ex.Message.Contains("Validation", StringComparison.OrdinalIgnoreCase) == true ? 400 : 500;
+
+        var message = ex.Message;
+
+        var response = new RabbitResponse<object>
+        {
+            Data = null,
+            StatusCode = statusCode,
+            Errors = [message]
+        };
+        
+        return response;
     }
 
     private async Task MonitorReplyQueue(string? replyTo, CancellationTokenSource cts, CancellationToken ct)

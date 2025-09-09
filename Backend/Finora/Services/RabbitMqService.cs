@@ -106,8 +106,7 @@ namespace Finora.Web.Services
 
             if (msgWithCorrId is null)
                 throw new ArgumentException("Message must implement IMessageWithCorrelationId", nameof(message));
-            var messageId = msgWithCorrId.MessageId == Guid.Empty ? Guid.NewGuid() : msgWithCorrId.MessageId;
-            msgWithCorrId.MessageId = messageId;
+            var messageId = Guid.NewGuid();
 
             try
             {

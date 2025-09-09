@@ -11,6 +11,8 @@ using Finora.Services;
 using Mapster;
 using Finora.Backend.Persistance.Configs.Adapters;
 using Finora.Backend.Common.Extensions;
+using MediatR;
+using Finora.Validation;
 
 var host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
@@ -35,7 +37,7 @@ var host = Host.CreateDefaultBuilder()
                 services.AddTransient<IOutboxSender, OutboxSender>();
                 services.AddScoped<IMailingService, MailingService>();
                 services.AddScoped<IDbHealthCheck, DbHealthCheck>();
-                services.AddScoped<IRequestValidator, Finora.Validation.RequestValidator>();
+                services.AddScoped<IRequestValidator, RequestValidator>();
                 
                 services.AddRepositories();
                 
@@ -43,7 +45,7 @@ var host = Host.CreateDefaultBuilder()
                 
                 services.AddMediatR(cfg => {
                     cfg.RegisterServicesFromAssembly(typeof(GetAllUsersHandler).Assembly);
-                    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(Finora.Validation.ValidationBehavior<,>));
+                    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
                 });
             })
             .Build();
