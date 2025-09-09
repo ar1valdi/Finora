@@ -24,13 +24,17 @@ public class OutboxSender(
 
                 foreach (var message in pendingMessages)
                 {
+                    if (message.Exchange.Contains("nternal"))
+                    {
+                        int x = 10;
+                    }
                     try
                     {
                         //if (await QueueExists(message.ReplyTo))
                         {
                             await rabbitMqService.PublishFromJson(
-                                string.Empty,
-                                message.ReplyTo,
+                                message.Exchange,
+                                message.RoutingKey,
                                 message.CorrelationId,
                                 Guid.NewGuid(),
                                 message.Response,
@@ -38,7 +42,7 @@ public class OutboxSender(
                                 cancellationToken
                             ); 
                             await rabbitMqService.PublishFromJson(
-                                string.Empty,
+                                message.Exchange,
                                 "DEBUG_RESPONSES",
                                 message.CorrelationId,
                                 Guid.NewGuid(),
@@ -47,7 +51,7 @@ public class OutboxSender(
                                 cancellationToken
                             );
                             message.Status = Kernel.OutboxMessageStatus.Sent;
-                            logger.LogInformation("Sent outbox message {MessageId} to queue {QueueName}", message.Id, message.ReplyTo);
+                            logger.LogInformation("Sent outbox message {MessageId} to queue {QueueName}", message.Id, message.RoutingKey);
                         }
                         //else
                         //{

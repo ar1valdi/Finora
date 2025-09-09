@@ -8,6 +8,7 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly FinoraDbContext _context;
     private IDbContextTransaction? _currentTransaction;
+    public event EventHandler OnJobHandled = delegate { };
 
     public UnitOfWork(FinoraDbContext context)
     {
@@ -65,6 +66,11 @@ public class UnitOfWork : IUnitOfWork
             _currentTransaction?.Dispose();
             _currentTransaction = null;
         }
+    }
+
+    public void JobHandled()
+    {
+        OnJobHandled?.Invoke(this, EventArgs.Empty);
     }
 
     public void Dispose()

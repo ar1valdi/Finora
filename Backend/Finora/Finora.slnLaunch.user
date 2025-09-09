@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Back + mail",
+    "Projects": [
+      {
+        "Path": "Finora.Backend.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\Finora.Mailing\\Finora.Mailing.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

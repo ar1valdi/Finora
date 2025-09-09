@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Finora.Repositories.Interfaces;
 using Finora.Kernel;
 using Finora.Backend.Common;
+using Finora.Services;
 
 namespace Finora.Web.Services;
 
@@ -22,7 +23,8 @@ public class RabbitListener(
     IRabbitMqService rabbitMqService,
     ILogger<RabbitListener> logger,
     IServiceProvider serviceProvider,
-    IOutboxMessageRepository outboxRepo
+    IOutboxMessageRepository outboxRepo,
+    IDbHealthCheck dbHealthCheck
 ) : IRabbitListener
 {
     private IChannel? _channel;
@@ -33,8 +35,17 @@ public class RabbitListener(
         _channel = await rabbitMqService.GetChannel(cancellationToken);
         var consumer = new AsyncEventingBasicConsumer(_channel);
 
+        var shouldWrapInTransaction = acceptingCqsType == "Command";
+
         consumer.ReceivedAsync += async (sender, args) =>
         {
+            if (!await dbHealthCheck.IsHealthyAsync(cancellationToken))
+            {
+                logger.LogError("Database is not healthy. Skipping message processing.");
+                await _channel.BasicNackAsync(args.DeliveryTag, false, false, cancellationToken);
+                return;
+            }
+
             using var messageScope = serviceProvider.CreateScope();
             var mediator = messageScope.ServiceProvider.GetRequiredService<IMediator>();
             var unitOfWork = messageScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
@@ -89,7 +100,10 @@ public class RabbitListener(
                     throw new OperationCanceledException("Response queue does not exist.");
                 }
 
-                using var transaction = await unitOfWork.BeginTransactionAsync(handlerCts.Token);
+                if (shouldWrapInTransaction)
+                {
+                    await unitOfWork.BeginTransactionAsync(handlerCts.Token);
+                }
 
                 var response = await mediator.Send(request, handlerCts.Token);
                 OutboxMessage? outboxMsg = null;
@@ -98,7 +112,7 @@ public class RabbitListener(
                 {
                     outboxMsg = new OutboxMessage
                     {
-                        ReplyTo = replyTo,
+                        RoutingKey = replyTo,
                         CorrelationId = corr,
                         Response = JsonSerializer.Serialize(response, JsonConfig.JsonOptions),
                         DeliveryTag = args.DeliveryTag
@@ -106,7 +120,11 @@ public class RabbitListener(
                     await outboxRepo.AddAsync(outboxMsg, handlerCts.Token);
                 }
                 
-                await unitOfWork.CommitAsync(handlerCts.Token);
+                unitOfWork.JobHandled();
+                if (shouldWrapInTransaction)
+                {
+                    await unitOfWork.CommitAsync(handlerCts.Token);
+                }
                 await responseMonitoringCts.CancelAsync();
 
                 await _channel.BasicAckAsync(args.DeliveryTag, false, cancellationToken);
@@ -116,11 +134,19 @@ public class RabbitListener(
             catch (OperationCanceledException)
             {
                 logger.LogWarning("Operation cancelled - timeout or app closed.");
+                if (shouldWrapInTransaction)
+                {
+                    await unitOfWork.RollbackAsync();
+                }
                 await _channel.BasicNackAsync(args.DeliveryTag, false, false, cancellationToken);
             }
             catch (Exception ex)
             {
                 await _channel.BasicNackAsync(args.DeliveryTag, false, false, cancellationToken);
+                if (shouldWrapInTransaction)
+                {
+                    await unitOfWork.RollbackAsync();
+                }
                 logger.LogError(ex, "Failed to process message from queue {QueueName}. DeliveryTag: {DeliveryTag}", queueName, args.DeliveryTag);
             }
         };
@@ -140,7 +166,15 @@ public class RabbitListener(
 
         while (!cts.IsCancellationRequested)
         {
-            await Task.Delay(MONITOR_REPLY_QUEUE_INTERVAL, ct);
+            try
+            {
+                await Task.Delay(MONITOR_REPLY_QUEUE_INTERVAL, ct);
+            }
+            catch (TaskCanceledException)
+            {
+                break;
+            }
+
             if (ct.IsCancellationRequested)
             {
                 break;

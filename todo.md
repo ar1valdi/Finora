@@ -12,12 +12,15 @@
 / ATM simulator
 / zarzadzanie balansem z panelu administratora
 
-- przekazanie komendy dalej do nastepnej aplikacji (mailowej)
+/ przekazanie komendy dalej do nastepnej aplikacji (mailowej)
 - implementacja fail-fast
 - handshake + circuit breaker
 - konteneryzacja
 
-- !!! queries nie muszą być w transakcjach
+- mechanizm timeoutów działa niepoprawnie, po około 2k requestach wywala apkę
+
+/ queries nie muszą być w transakcjach
+- !!! sprawdzić jak działa QoS, czy na pewno ACK dobrze chodzi (punkt 7 instrukcji)
 
 # ze zdrowego myslenia
 - requeue problem (tymczasowy fix: bez requeue)
@@ -32,3 +35,7 @@
     - moze udaloby sie jakos sprytnie trzymac JWT, bo i tak nie ma tu chyba mozliowsci ataku przez skrypty
 - dodanie wyswietlania i obslugi bledow przychodzacych z backendu na froncie
 - dodanie odpowiednich uzytkownikow do rabbita i korzystanie z nich na froncie i backendzie
+- dodanie sprytnego mechanizmu odroczenia wykonania polecenia do momentu commita transkacji (np event w unit of work)
+- wymineić listenery i publishera w backend na hosted service
+- nie można przejść z login do register
+- powymieniać wszystkie ngIf ngFor na @if @for

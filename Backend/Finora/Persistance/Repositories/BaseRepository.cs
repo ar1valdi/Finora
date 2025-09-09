@@ -75,4 +75,10 @@ public class BaseRepository<T> : IBaseRepository<T> where T : EntityBase
         _dbSet.Remove(entity);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public virtual async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+    {
+        await _dbSet.AddRangeAsync(entities, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

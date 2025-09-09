@@ -5,23 +5,21 @@ using Finora.Models;
 using Finora.Services;
 using Mapster;
 using Finora.Messages.Wrappers;
+using Microsoft.Extensions.Options;
+using Finora.Web.Configuration;
 
 namespace Finora.Handlers;
 
-public class AddUserHandler : IRequestHandler<AddUserRequest, RabbitResponse<object>>
+public class AddUserHandler(
+    IUserRepository userRepository,
+    IPasswordService passwordService,
+    IMailingService mailingService,
+    IOptions<MailingConfiguration> configuration
+) : IRequestHandler<AddUserRequest, RabbitResponse<object>>
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IPasswordService _passwordService;
-
-    public AddUserHandler(IUserRepository userRepository, IPasswordService passwordService)
-    {
-        _userRepository = userRepository;
-        _passwordService = passwordService;
-    }
-
     public async Task<RabbitResponse<object>> Handle(AddUserRequest request, CancellationToken cancellationToken)
     {
-        var hashedPassword = _passwordService.HashPassword(request.Password);
+        var hashedPassword = passwordService.HashPassword(request.Password);
 
         var account = new BankAccount
         {
@@ -46,8 +44,16 @@ public class AddUserHandler : IRequestHandler<AddUserRequest, RabbitResponse<obj
             BankAccountId = account.Id,
         };
 
-        var addedUser = await _userRepository.AddAsync(user, cancellationToken);
+        var addedUser = await userRepository.AddAsync(user, cancellationToken);
         var userDto = addedUser.Adapt<UserDTO>();
+
+        mailingService.SendEmailAtJobHandled(
+            request.Email,
+            configuration.Value.Templates["AccountCreated"].Subject,
+            configuration.Value.Templates["AccountCreated"].Body.Replace("{fullName}", user.FullName).Replace("{bankAccountId}", user.BankAccountId.ToString()),
+            Guid.NewGuid(),
+            cancellationToken
+        );
 
         return new RabbitResponse<object>
         {

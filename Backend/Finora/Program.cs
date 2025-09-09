@@ -26,10 +26,16 @@ var host = Host.CreateDefaultBuilder()
                 services.Configure<RabbitMqConfiguration>(
                     context.Configuration.GetSection("RabbitMQ"));
 
+                services.Configure<MailingConfiguration>(
+                    context.Configuration.GetSection("Mailing"));
+
                 services.AddSingleton<IRabbitMqService, RabbitMqService>();
                 services.AddScoped<IPasswordService, PasswordService>();
                 services.AddTransient<IRabbitListener, RabbitListener>();
                 services.AddTransient<IOutboxSender, OutboxSender>();
+                services.AddScoped<IMailingService, MailingService>();
+                services.AddScoped<IDbHealthCheck, DbHealthCheck>();
+                services.AddScoped<IRequestValidator, Finora.Validation.RequestValidator>();
                 
                 services.AddRepositories();
                 
@@ -37,6 +43,7 @@ var host = Host.CreateDefaultBuilder()
                 
                 services.AddMediatR(cfg => {
                     cfg.RegisterServicesFromAssembly(typeof(GetAllUsersHandler).Assembly);
+                    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(Finora.Validation.ValidationBehavior<,>));
                 });
             })
             .Build();

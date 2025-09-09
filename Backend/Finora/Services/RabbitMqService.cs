@@ -170,11 +170,11 @@ namespace Finora.Web.Services
                     cancellationToken: ct);
 
             await channel.ExchangeDeclareAsync(
-                _configuration.ResponseExchange,
-                ExchangeType.Direct,
-                durable: true,
-                autoDelete: false,
-                cancellationToken: ct);
+                    _configuration.InternalExchangeName,
+                    ExchangeType.Direct,
+                    durable: true,
+                    autoDelete: false,
+                    cancellationToken: ct);
 
             string commandsQueue = _configuration.RequestQueue;
             string queriesQueue = _configuration.QueryQueue;

@@ -16,7 +16,8 @@ namespace Finora.Web.Configuration
         public string CommandRoutingKey { get; set; } = string.Empty;
         public string QueryRoutingKey { get; set; } = string.Empty;
         
-        // Responses
-        public string ResponseExchange { get; set; } = string.Empty;
+        // Internal
+        public string InternalExchangeName { get; set; } = string.Empty;
+        public string MailingRoutingKey { get; set; } = string.Empty;
     }
 }

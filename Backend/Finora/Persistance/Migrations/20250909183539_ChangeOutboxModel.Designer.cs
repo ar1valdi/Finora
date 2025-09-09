@@ -3,17 +3,20 @@ using System;
 using Finora.Persistance.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Finora.Persistance.Migrations
+namespace Finora.Backend.Migrations
 {
     [DbContext(typeof(FinoraDbContext))]
-    partial class FinoraDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250909183539_ChangeOutboxModel")]
+    partial class ChangeOutboxModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
