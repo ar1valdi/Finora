@@ -6,23 +6,18 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
 using System.Threading.Tasks;
+using Finora.Services;
 
 public class DatabaseCircuitBreakerInterceptor(
     ILogger<DatabaseCircuitBreakerInterceptor> _logger,
-    IConfiguration _configuration
+    IConfiguration _configuration,
+    ICircuitBreakerStateHolder _circuitBreakerStateHolder
 ) : DbCommandInterceptor, IDbConnectionInterceptor, IDbTransactionInterceptor, IDisposable
 {
-    private enum CircuitState
-    {
-        Closed,
-        Open,
-        HalfOpen
-    }
 
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly SemaphoreSlim _halfOpenSemaphore = new(3, 3);
 
-    private CircuitState _circuitState = CircuitState.Closed;
     private int _consecutiveFailures = 0;
     private int _halfOpenSuccessCount = 0;
     private DateTime _lastFailureTime = DateTime.MinValue;
@@ -213,7 +208,8 @@ public class DatabaseCircuitBreakerInterceptor(
 
     private void CheckCircuitBreaker()
     {
-        switch (_circuitState)
+        var circuitState = _circuitBreakerStateHolder.Get();
+        switch (circuitState)
         {
             case CircuitState.Closed:
                 break;
@@ -221,7 +217,7 @@ public class DatabaseCircuitBreakerInterceptor(
             case CircuitState.Open:
                 if (DateTime.UtcNow - _lastFailureTime > TimeSpan.FromSeconds(_retryTimeout))
                 {
-                    _circuitState = CircuitState.HalfOpen;
+                    _circuitBreakerStateHolder.Set(CircuitState.HalfOpen);
                     _halfOpenSuccessCount = 0;
                     _logger.LogInformation("Circuit breaker moved to HALF-OPEN - testing database recovery");
                 }
@@ -243,16 +239,17 @@ public class DatabaseCircuitBreakerInterceptor(
     private void HandleSuccess()
     {
         _semaphore.Wait();
+        var circuitState = _circuitBreakerStateHolder.Get();
         try
         {
-            if (_circuitState == CircuitState.HalfOpen)
+            if (circuitState == CircuitState.HalfOpen)
             {
                 _halfOpenSuccessCount++;
                 _logger.LogInformation("Half-Open success count: {SuccessCount}", _halfOpenSuccessCount);
                 
                 if (_halfOpenSuccessCount >= _halfOpenSuccessThreshold)
                 {
-                    _circuitState = CircuitState.Closed;
+                    _circuitBreakerStateHolder.Set(CircuitState.Closed);
                     _consecutiveFailures = 0;
                     _halfOpenSuccessCount = 0;
                     _logger.LogInformation("Circuit breaker moved to CLOSED - database recovered");
@@ -272,20 +269,21 @@ public class DatabaseCircuitBreakerInterceptor(
     private void HandleFailure()
     {
         _semaphore.Wait();
+        var circuitState = _circuitBreakerStateHolder.Get();
         try
         {
             _consecutiveFailures++;
             _lastFailureTime = DateTime.UtcNow;
 
-            if (_circuitState == CircuitState.HalfOpen)
+            if (circuitState == CircuitState.HalfOpen)
             {
-                _circuitState = CircuitState.Open;
+                _circuitBreakerStateHolder.Set(CircuitState.Open);
                 _halfOpenSuccessCount = 0;
                 _logger.LogError("Circuit breaker moved back to OPEN from Half-Open after failure");
             }
             else if (_consecutiveFailures >= _failureThreshold)
             {
-                _circuitState = CircuitState.Open;
+                _circuitBreakerStateHolder.Set(CircuitState.Open);
                 _logger.LogError("Database circuit breaker opened after {FailureCount} consecutive failures", _consecutiveFailures);
             }
         }

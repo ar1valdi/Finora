@@ -11,7 +11,9 @@ public interface IOutboxSender {
 public class OutboxSender(
     IOutboxMessageRepository outboxMessageRepository,
     IRabbitMqService rabbitMqService,
-    ILogger<OutboxSender> logger) : IOutboxSender {
+    ILogger<OutboxSender> logger,
+    ICircuitBreakerStateHolder circuitBreakerStateHolder,
+    IDbHealthCheck dbHealthCheck) : IOutboxSender {
     public async Task Run(int interval, CancellationToken cancellationToken)
     {
         var channel = await rabbitMqService.GetChannel(cancellationToken);
@@ -19,6 +21,13 @@ public class OutboxSender(
         {
             try
             {
+                var dbHealthy = circuitBreakerStateHolder.Get() == CircuitState.Closed;
+                if (!dbHealthy)
+                {
+                    await Task.Delay(10 * interval, cancellationToken);
+                    await dbHealthCheck.IsHealthyAsync(cancellationToken);
+                    continue;
+                }
 
                 var pendingMessages = await outboxMessageRepository.GetPendingMessagesAsync(cancellationToken);
 
@@ -50,7 +59,11 @@ public class OutboxSender(
                     catch (Exception ex)
                     {
                         message.Status = Kernel.OutboxMessageStatus.Failed;
-                        logger.LogError("Error on sending resposne: {ex}. Retrying in next run.", ex);
+                        var stillHealthy = circuitBreakerStateHolder.Get() == CircuitState.Closed;
+                        if (stillHealthy)
+                        {
+                            logger.LogError(ex, "Error sending outbox message {MessageId}. Retrying in next run.", message.Id);
+                        }
                     }
                 }
 
@@ -60,7 +73,11 @@ public class OutboxSender(
             }
             catch (Exception ex)
             {
-                logger.LogError("Error in OutboxSender: {ex}. Retrying in next run.", ex);
+                var dbHealthy = circuitBreakerStateHolder.Get() == CircuitState.Closed;
+                if (dbHealthy)
+                {
+                    logger.LogError(ex, "Error in OutboxSender. Retrying in next run.");
+                }
             }
         }
     }

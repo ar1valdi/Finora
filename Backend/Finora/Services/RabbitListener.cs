@@ -44,13 +44,6 @@ public class RabbitListener(
 
         consumer.ReceivedAsync += async (sender, args) =>
         {
-            if (!await dbHealthCheck.IsHealthyAsync(cancellationToken))
-            {
-                logger.LogError("Database is not healthy. Skipping message processing.");
-                await _channel.BasicNackAsync(args.DeliveryTag, false, false, cancellationToken);
-                return;
-            }
-
             using var messageScope = serviceProvider.CreateScope();
             var mediator = messageScope.ServiceProvider.GetRequiredService<IMediator>();
             var unitOfWork = messageScope.ServiceProvider.GetRequiredService<IUnitOfWork>();
@@ -72,13 +65,36 @@ public class RabbitListener(
                 replyTo = args.BasicProperties.ReplyTo;
                 var msgType = envelope.Type;
                 var cqsType = envelope.MessageType.ToString();
+                corr = string.IsNullOrEmpty(correlationId) ? Guid.Empty : Guid.Parse(correlationId);
+                
+
+                
+                if (!await dbHealthCheck.IsHealthyAsync(cancellationToken))
+                {
+                    logger.LogError("Database is not healthy. Skipping message processing.");
+                    await _channel.BasicAckAsync(args.DeliveryTag, false, cancellationToken);
+                    
+                    if (string.IsNullOrEmpty(replyTo))
+                    {
+                        return;
+                    }
+
+                    var errResponse = new RabbitResponse<object>
+                    {
+                        Data = null,
+                        StatusCode = 503,
+                        Errors = ["Databse is not healthy."]
+                    };
+                    await rabbitMqService.PublishMessage(string.Empty, replyTo, corr, errResponse, _channel, cancellationToken);
+                    return;
+                }
+
 
                 if (acceptingCqsType is not null && cqsType != acceptingCqsType)
                 {
                     throw new InvalidOperationException($"Message type {cqsType} is not accepted by this listener");
                 }
 
-                corr = string.IsNullOrEmpty(correlationId) ? Guid.Empty : Guid.Parse(correlationId);
                 if (corr != Guid.Empty && await outboxRepo.IsInOutbox(corr, cancellationToken))
                 {
                     logger.LogInformation("Message with correlation id {CorrelationId} already processed. Acknowledging and skipping.", correlationId);

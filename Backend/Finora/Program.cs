@@ -53,6 +53,8 @@ var host = Host.CreateDefaultBuilder()
                     cfg.RegisterServicesFromAssembly(typeof(GetAllUsersHandler).Assembly);
                     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
                 });
+
+                services.AddSingleton<ICircuitBreakerStateHolder, CircuitBreakerStateHolder>();
             })
             .Build();
 
