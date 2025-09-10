@@ -10,14 +10,11 @@
 / wysylanie kasy
 / historia
 / ATM simulator
-- zarzadzanie balansem z panelu administratora
 
 / przekazanie komendy dalej do nastepnej aplikacji (mailowej)
 / implementacja fail-fast
 / handshake + circuit breaker
-- konteneryzacja
-
-- mechanizm timeoutów działa niepoprawnie, po około 2k requestach wywala apkę
+/ konteneryzacja
 
 / queries nie muszą być w transakcjach
 / !!! sprawdzić jak działa QoS, czy na pewno ACK dobrze chodzi (punkt 7 instrukcji)
@@ -30,5 +27,4 @@
 - dodanie odpowiednich uzytkownikow do rabbita i korzystanie z nich na froncie i backendzie
 / dodanie sprytnego mechanizmu odroczenia wykonania polecenia do momentu commita transkacji (np event w unit of work)
 - wymineić listenery i publishera w backend na hosted service
-- nie można przejść z login do register
-/ powymieniać wszystkie ngIf ngFor na @if @for
+

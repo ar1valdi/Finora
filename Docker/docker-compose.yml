@@ -6,6 +6,8 @@ services:
         ports:
             - "1025:1025" # SMTP
             - "8025:8025" # UI
+        volumes:
+            - ./data/mailhog:/tmp
         networks:
             - finora-network
 
@@ -49,6 +51,11 @@ services:
             - ./data/rmq:/var/lib/rabbitmq
             - ./rabbitmq.conf:/etc/rabbitmq/conf.d/10-defaults.conf
         entrypoint: ["/bin/sh", "-c", "rabbitmq-plugins enable rabbitmq_web_stomp && rabbitmq-server"]
+        healthcheck:
+            test: ["CMD", "rabbitmq-diagnostics", "ping"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
 
     backend:
         build:
@@ -57,8 +64,10 @@ services:
         networks:
             - finora-network
         depends_on:
-            - postgres
-            - rmq
+            postgres:
+                condition: service_started
+            rmq:
+                condition: service_healthy
 
     mailing:
         build:
@@ -67,8 +76,10 @@ services:
         networks:
             - finora-network
         depends_on:
-            - rmq
-            - mailhog
+            rmq:
+                condition: service_healthy
+            mailhog:
+                condition: service_started
 
     frontend:
         build:
@@ -81,3 +92,4 @@ services:
 
 networks:
     finora-network:
+    

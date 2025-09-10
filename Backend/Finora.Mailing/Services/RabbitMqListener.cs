@@ -73,6 +73,8 @@ public class RabbitMqListener(
                 routingKey: _routingKey
             );
 
+            await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 3, global: false);
+
             var consumer = new AsyncEventingBasicConsumer(_channel);
             consumer.ReceivedAsync += async (model, ea) =>
             {
