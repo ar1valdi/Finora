@@ -6,19 +6,11 @@ using Finora.Models.Enums;
 
 namespace Finora.Handlers;
 
-public class HandleTransferMoney : IRequestHandler<TransferMoneyRequest, RabbitResponse<object>>
+public class HandleTransferMoney(
+    IBankAccountRepository _bankAccountRepository,
+    IBankTransactionRepository _bankTransactionRepository
+) : IRequestHandler<TransferMoneyRequest, RabbitResponse<object>>
 {
-    private readonly IBankAccountRepository _bankAccountRepository;
-    private readonly IBankTransactionRepository _bankTransactionRepository;
-
-    public HandleTransferMoney(
-        IBankAccountRepository bankAccountRepository,
-        IBankTransactionRepository bankTransactionRepository)
-    {
-        _bankAccountRepository = bankAccountRepository;
-        _bankTransactionRepository = bankTransactionRepository;
-    }
-
     public async Task<RabbitResponse<object>> Handle(TransferMoneyRequest request, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(request.FromBankAccountId, out var fromId) || !Guid.TryParse(request.ToBankAccountId, out var toId))

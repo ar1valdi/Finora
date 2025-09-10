@@ -4,6 +4,7 @@ using Finora.Messages.Users;
 using Finora.Messages.Interfaces;
 using Finora.Backend.Common;
 using Finora.Messages.Banking;
+using Finora.Messages.System;
 
 namespace Finora.Backend.Services;
 
@@ -24,7 +25,10 @@ public static class MessageMapper
         // banking
         {"DepositWithdrawl", typeof(DepositWithdrawlRequest)},
         {"TransferMoney", typeof(TransferMoneyRequest)},
-        {"GetUserTransactions", typeof(GetUserTransactionsRequest)}
+        {"GetUserTransactions", typeof(GetUserTransactionsRequest)},
+
+        // health
+        {"HealthCheck", typeof(HealthCheckRequest)}
     };
 
     private static Type Map(string message)

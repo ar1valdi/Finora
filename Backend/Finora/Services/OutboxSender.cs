@@ -24,39 +24,28 @@ public class OutboxSender(
 
                 foreach (var message in pendingMessages)
                 {
-                    if (message.Exchange.Contains("nternal"))
-                    {
-                        int x = 10;
-                    }
                     try
                     {
-                        //if (await QueueExists(message.ReplyTo))
-                        {
-                            await rabbitMqService.PublishFromJson(
-                                message.Exchange,
-                                message.RoutingKey,
-                                message.CorrelationId,
-                                Guid.NewGuid(),
-                                message.Response,
-                                channel,
-                                cancellationToken
-                            ); 
-                            await rabbitMqService.PublishFromJson(
-                                message.Exchange,
-                                "DEBUG_RESPONSES",
-                                message.CorrelationId,
-                                Guid.NewGuid(),
-                                message.Response,
-                                channel,
-                                cancellationToken
-                            );
-                            message.Status = Kernel.OutboxMessageStatus.Sent;
-                            logger.LogInformation("Sent outbox message {MessageId} to queue {QueueName}", message.Id, message.RoutingKey);
-                        }
-                        //else
-                        //{
-                        //    message.Status = Kernel.OutboxMessageStatus.Failed;
-                        //}
+                        await rabbitMqService.PublishFromJson(
+                            message.Exchange,
+                            message.RoutingKey,
+                            message.CorrelationId,
+                            Guid.NewGuid(),
+                            message.Response,
+                            channel,
+                            cancellationToken
+                        ); 
+                        await rabbitMqService.PublishFromJson(
+                            message.Exchange,
+                            "DEBUG_RESPONSES",
+                            message.CorrelationId,
+                            Guid.NewGuid(),
+                            message.Response,
+                            channel,
+                            cancellationToken
+                        );
+                        message.Status = Kernel.OutboxMessageStatus.Sent;
+                        logger.LogInformation("Sent outbox message {MessageId} to queue {QueueName}", message.Id, message.RoutingKey);
                     }
                     catch (Exception ex)
                     {
@@ -73,23 +62,6 @@ public class OutboxSender(
             {
                 logger.LogError("Error in OutboxSender: {ex}. Retrying in next run.", ex);
             }
-        }
-    }
-
-    private async Task<bool> QueueExists(string queue)
-    {
-        var channel = rabbitMqService.GetChannel(CancellationToken.None).Result;
-
-        try
-        {
-            await channel.QueueDeclarePassiveAsync(queue);
-            await channel.DisposeAsync();
-            return true;
-        }
-        catch
-        {
-            await channel.DisposeAsync();
-            return false;
         }
     }
 }

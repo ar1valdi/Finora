@@ -13,17 +13,23 @@ using Finora.Backend.Persistance.Configs.Adapters;
 using Finora.Backend.Common.Extensions;
 using MediatR;
 using Finora.Validation;
+using Finora.Persistance.Interceptors;
 
 var host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
                 var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
-                services.AddDbContext<FinoraDbContext>(options =>
+
+                services.AddSingleton<DatabaseCircuitBreakerInterceptor>();
+
+                services.AddDbContext<FinoraDbContext>((serviceProvider, options) => {
                     options.UseNpgsql(connectionString, npgsqlOptions => 
                     {
-                        npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "Finora");
-                    })
-                );
+                        npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "Finora");    
+                    });
+
+                    options.AddInterceptors(serviceProvider.GetRequiredService<DatabaseCircuitBreakerInterceptor>());
+                });
 
                 services.Configure<RabbitMqConfiguration>(
                     context.Configuration.GetSection("RabbitMQ"));

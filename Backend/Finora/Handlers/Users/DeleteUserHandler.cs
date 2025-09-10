@@ -6,15 +6,8 @@ using Finora.Messages.Wrappers;
 
 namespace Finora.Handlers;
 
-public class DeleteUserHandler : IRequestHandler<DeleteUserRequest, RabbitResponse<object>>
+public class DeleteUserHandler(IUserRepository _userRepository) : IRequestHandler<DeleteUserRequest, RabbitResponse<object>>
 {
-    private readonly IUserRepository _userRepository;
-
-    public DeleteUserHandler(IUserRepository userRepository)
-    {
-        _userRepository = userRepository;
-    }
-
     public async Task<RabbitResponse<object>> Handle(DeleteUserRequest request, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(request.Id, out var userId))

@@ -5,17 +5,11 @@ using Finora.Repositories.Interfaces;
 
 namespace Finora.Handlers;
 
-public class HandleGetUserTransactions : IRequestHandler<GetUserTransactionsRequest, RabbitResponse<object>>
+public class HandleGetUserTransactions(
+    IBankTransactionRepository _bankTransactionRepository,
+    IBankAccountRepository _bankAccountRepository
+) : IRequestHandler<GetUserTransactionsRequest, RabbitResponse<object>>
 {
-    private readonly IBankTransactionRepository _bankTransactionRepository;
-    private readonly IBankAccountRepository _bankAccountRepository;
-
-    public HandleGetUserTransactions(IBankTransactionRepository bankTransactionRepository, IBankAccountRepository bankAccountRepository)
-    {
-        _bankTransactionRepository = bankTransactionRepository;
-        _bankAccountRepository = bankAccountRepository;
-    }
-
     public async Task<RabbitResponse<object>> Handle(GetUserTransactionsRequest request, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(request.UserId, out var userId))

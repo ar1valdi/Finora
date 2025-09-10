@@ -6,13 +6,20 @@ import { IResponse } from '../models/communication/base/IResponse';
 import { IMessage } from '@stomp/stompjs';
 import { CurrentUserService } from './current-user.service';
 import { NotificationService } from './notification.service';
+import { createHealthCheckRequest } from '../models/communication/system/HealthCheckRequest';
+
+enum CircuitState {
+  CLOSED = 'CLOSED',
+  OPEN = 'OPEN',
+  HALF_OPEN = 'HALF_OPEN'
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class RabbitMqService {
-  private brokerURL = 'ws://localhost:15674/ws';
-  private connectHeaders = {
+  private readonly brokerURL = 'ws://localhost:15674/ws';
+  private readonly connectHeaders = {
     login: 'guest',
     passcode: 'guest'
   };
@@ -21,6 +28,15 @@ export class RabbitMqService {
 
   private client: Client;
   private isConnected = signal(false);
+
+  private circuitState: CircuitState = CircuitState.CLOSED;
+  private consecutiveFailures = 0;
+  private lastFailureTime: Date | null = null;
+  private readonly failureThreshold = 5;
+  private readonly healthCheckIntervals = [2000, 5000, 10000];
+  private currentIntervalIndex = 0;
+  private healthCheckTimer: any = null;
+  private isHealthCheckInProgress = false;
 
   private onConnect: () => void;
   private onStompError: (frame: any) => void;
@@ -72,9 +88,15 @@ export class RabbitMqService {
   }
 
   async send(message: IRequest, timeout: number = 10000): Promise<any> {
+    if (this.circuitState === CircuitState.OPEN) {
+      this.notificationService.showError('Circuit breaker is OPEN - service unavailable');
+      throw new Error('Circuit breaker is OPEN - service unavailable');
+    }
+
     const client = await this.ensureConnection();
     
     if (!client.connected) {
+      this.notificationService.showError('Not connected to RabbitMQ');
       throw new Error('Not connected to RabbitMQ');
     }
 
@@ -86,15 +108,20 @@ export class RabbitMqService {
       message.messageId = messageId;
       message.userId = this.currentUserService.getCurrentUser()?.id;
 
-
-      console.log(message);
       const routingKey = isCommand ? 'command' : 'query';
 
       const replyQueueName = `responses.${correlationId}.${uuidv4()}`;
       
       const wrappedResolve = (response: any) => {
         clearTimeout(timer);
+        this.onSuccess();
         resolve(response);
+      };
+
+      const wrappedReject = (error: any) => {
+        clearTimeout(timer);
+        this.onFailure();
+        reject(error);
       };
 
       const subscription = this.subscribeTemporaryReplyQueue(
@@ -102,13 +129,15 @@ export class RabbitMqService {
         replyQueueName,
         correlationId,
         wrappedResolve,
-        reject
+        wrappedReject
       );
 
       this.publishToExchange(client, routingKey, correlationId, replyQueueName, message);
 
       const timer = setTimeout(() => {
         try { subscription.unsubscribe(); } catch {}
+        this.onFailure();
+        this.notificationService.showError('Timeout');
         reject({
           correlationId: correlationId,
           errors: ['Timeout'],
@@ -195,5 +224,75 @@ export class RabbitMqService {
         data: { text: 'Reply to message ' + corrId }
       })
     });
+  }
+
+  private onSuccess(): void {
+    if (this.circuitState === CircuitState.HALF_OPEN) {
+      this.circuitState = CircuitState.CLOSED;
+      this.consecutiveFailures = 0;
+      this.currentIntervalIndex = 0;
+      this.stopHealthCheck();
+    } else if (this.circuitState === CircuitState.CLOSED) {
+      this.consecutiveFailures = 0;
+    }
+  }
+
+  private onFailure(): void {
+    this.consecutiveFailures++;
+    this.lastFailureTime = new Date();
+
+    if (this.circuitState === CircuitState.HALF_OPEN) {
+      this.circuitState = CircuitState.OPEN;
+      this.startHealthCheck();
+    } else if (this.consecutiveFailures >= this.failureThreshold && this.circuitState === CircuitState.CLOSED) {
+      this.circuitState = CircuitState.OPEN;
+      this.notificationService.showError('Service temporarily unavailable - circuit breaker activated');
+      this.startHealthCheck();
+    }
+  }
+
+  private startHealthCheck(): void {
+    if (this.healthCheckTimer) {
+      clearTimeout(this.healthCheckTimer);
+    }
+
+    const interval = this.healthCheckIntervals[this.currentIntervalIndex];
+
+    this.healthCheckTimer = setTimeout(() => {
+      this.performHealthCheck();
+    }, interval);
+
+    if (this.currentIntervalIndex < this.healthCheckIntervals.length - 1) {
+      this.currentIntervalIndex++;
+    }
+  }
+
+  private stopHealthCheck(): void {
+    if (this.healthCheckTimer) {
+      clearTimeout(this.healthCheckTimer);
+      this.healthCheckTimer = null;
+    }
+  }
+
+  private async performHealthCheck(): Promise<void> {
+    if (this.isHealthCheckInProgress) {
+      return;
+    }
+
+    this.isHealthCheckInProgress = true;
+
+    try {
+      this.circuitState = CircuitState.HALF_OPEN;
+      
+      const healthCheckRequest = createHealthCheckRequest();
+      await this.send(healthCheckRequest, 5000);
+      
+      this.notificationService.showSuccess('Service is available');
+    } catch (error) {
+      this.notificationService.showError(`Service is not available: ${error}`);
+      this.startHealthCheck();
+    } finally {
+      this.isHealthCheckInProgress = false;
+    }
   }
 }

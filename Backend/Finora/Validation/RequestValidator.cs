@@ -3,15 +3,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Finora.Validation;
 
-public class RequestValidator : IRequestValidator
+public class RequestValidator(ILogger<RequestValidator> _logger) : IRequestValidator
 {
-    private readonly ILogger<RequestValidator> _logger;
-
-    public RequestValidator(ILogger<RequestValidator> logger)
-    {
-        _logger = logger;
-    }
-
     public ValidationResult Validate<T>(T request, CancellationToken cancellationToken = default) where T : class
     {
         if (request == null)

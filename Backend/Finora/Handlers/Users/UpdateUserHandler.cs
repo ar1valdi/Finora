@@ -7,17 +7,11 @@ using Finora.Messages.Wrappers;
 
 namespace Finora.Handlers;
 
-public class UpdateUserHandler : IRequestHandler<UpdateUserRequest, RabbitResponse<object>>
+public class UpdateUserHandler(
+    IUserRepository _userRepository, 
+    IPasswordService _passwordService
+    ) : IRequestHandler<UpdateUserRequest, RabbitResponse<object>>
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IPasswordService _passwordService;
-
-    public UpdateUserHandler(IUserRepository userRepository, IPasswordService passwordService)
-    {
-        _userRepository = userRepository;
-        _passwordService = passwordService;
-    }
-
     public async Task<RabbitResponse<object>> Handle(UpdateUserRequest request, CancellationToken cancellationToken)
     {
         var existingUser = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
