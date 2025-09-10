@@ -26,6 +26,7 @@ public static class MessageMapper
         {"DepositWithdrawl", typeof(DepositWithdrawlRequest)},
         {"TransferMoney", typeof(TransferMoneyRequest)},
         {"GetUserTransactions", typeof(GetUserTransactionsRequest)},
+        {"GetUserBalance", typeof(GetUserBalanceRequest)},
 
         // health
         {"HealthCheck", typeof(HealthCheckRequest)}

@@ -11,7 +11,7 @@
                 <div class="col-email">Email</div>
                 <div class="col-dob">Date of Birth</div>
                 <div class="col-status">Status</div>
-                <div class="col-id">ID</div>
+                <div class="col-id">AccountID</div>
                 <div class="col-actions">Actions</div>
             </div>
             
@@ -32,7 +32,7 @@
                         </span>
                     </div>
                     <div class="col-id" data-label="ID">
-                        <span class="user-id">{{ user.id }}</span>
+                        <span class="user-id">{{ user.bankAccountId }}</span>
                     </div>
                     <div class="col-actions" data-label="Actions">
                         @if (!user.isDeleted) {

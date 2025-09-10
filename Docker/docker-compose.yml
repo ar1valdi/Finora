@@ -50,5 +50,34 @@ services:
             - ./rabbitmq.conf:/etc/rabbitmq/conf.d/10-defaults.conf
         entrypoint: ["/bin/sh", "-c", "rabbitmq-plugins enable rabbitmq_web_stomp && rabbitmq-server"]
 
+    backend:
+        build:
+            context: ../Backend
+            dockerfile: Dockerfile.Backend
+        networks:
+            - finora-network
+        depends_on:
+            - postgres
+            - rmq
+
+    mailing:
+        build:
+            context: ../Backend
+            dockerfile: Dockerfile.Mailing
+        networks:
+            - finora-network
+        depends_on:
+            - rmq
+            - mailhog
+
+    frontend:
+        build:
+            context: ../Frontend
+            dockerfile: Dockerfile
+        networks:
+            - finora-network
+        ports:
+            - "80:80"
+
 networks:
     finora-network:

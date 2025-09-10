@@ -31,6 +31,16 @@ public class HandleTransferMoney(
             return new RabbitResponse<object> { StatusCode = 404 };
         }
 
+        if (from.Balance < request.Amount)
+        {
+            return new RabbitResponse<object> { StatusCode = 404, Errors = ["Not enough money"] };
+        }
+
+        from.Balance -= request.Amount;
+        to.Balance += request.Amount;
+        await _bankAccountRepository.UpdateAsync(from);
+        await _bankAccountRepository.UpdateAsync(to);
+
         await _bankTransactionRepository.AddAsync(new Models.BankTransaction
         {
             From = from,

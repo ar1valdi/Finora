@@ -7,6 +7,7 @@ import { IMessage } from '@stomp/stompjs';
 import { CurrentUserService } from './current-user.service';
 import { NotificationService } from './notification.service';
 import { createHealthCheckRequest } from '../models/communication/system/HealthCheckRequest';
+import { env } from '../env';
 
 enum CircuitState {
   CLOSED = 'CLOSED',
@@ -18,13 +19,12 @@ enum CircuitState {
   providedIn: 'root'
 })
 export class RabbitMqService {
-  private readonly brokerURL = 'ws://localhost:15674/ws';
+  private readonly brokerURL = env.rabbitHost; 
   private readonly connectHeaders = {
-    login: 'guest',
-    passcode: 'guest'
+    login: env.rabbitUserName,
+    passcode: env.rabbitPassword 
   };
-
-  private requestsExchange = 'finora.requests';
+  private requestsExchange = env.rabbitRequestExchange;
 
   private client: Client;
   private isConnected = signal(false);

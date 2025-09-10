@@ -20,7 +20,7 @@
 - mechanizm timeoutów działa niepoprawnie, po około 2k requestach wywala apkę
 
 / queries nie muszą być w transakcjach
-- !!! sprawdzić jak działa QoS, czy na pewno ACK dobrze chodzi (punkt 7 instrukcji)
+/ !!! sprawdzić jak działa QoS, czy na pewno ACK dobrze chodzi (punkt 7 instrukcji)
 
 # ze zdrowego myslenia
 - dodac szyfrowanie po webstompie (chyba wystarczy zmienic protokol i port w ts)
@@ -31,4 +31,4 @@
 / dodanie sprytnego mechanizmu odroczenia wykonania polecenia do momentu commita transkacji (np event w unit of work)
 - wymineić listenery i publishera w backend na hosted service
 - nie można przejść z login do register
-- powymieniać wszystkie ngIf ngFor na @if @for
+/ powymieniać wszystkie ngIf ngFor na @if @for

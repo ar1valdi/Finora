@@ -1,6 +1,6 @@
 <div class="notification-container">
+  @for (notification of notifications; track notification.id) {
   <div 
-    *ngFor="let notification of notifications; trackBy: trackByFn" 
     class="notification"
     [class.error]="notification.type === 'error'"
     [class.success]="notification.type === 'success'"
@@ -13,8 +13,9 @@
         class="close-btn" 
         (click)="removeNotification(notification.id)"
         aria-label="Close notification">
-        ×
+        X
       </button>
     </div>
   </div>
+}
 </div>

@@ -1,0 +1,22 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+
+WORKDIR /src
+
+COPY ./Finora ./Finora
+COPY ./Finora.Messages ./Finora.Messages
+
+RUN dotnet restore Finora/Finora.Backend.csproj
+
+RUN dotnet build -c Release Finora/Finora.Backend.csproj
+
+RUN dotnet publish -c Release -o /app/publish Finora/Finora.Backend.csproj
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+EXPOSE 80
+
+ENTRYPOINT ["dotnet", "Finora.Backend.dll"]

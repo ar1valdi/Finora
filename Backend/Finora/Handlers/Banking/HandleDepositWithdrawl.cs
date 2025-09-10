@@ -22,6 +22,11 @@ public class HandleDepositWithdrawl(
             return new RabbitResponse<object> { StatusCode = 404 };
         }
 
+        if (bankAccount.Balance + request.Amount < 0)
+        {
+            return new RabbitResponse<object> { StatusCode = 404, Errors = ["Not enough money"] };
+        }
+
         bankAccount.Balance += request.Amount;
 
         await _bankTransactionRepository.AddAsync(new BankTransaction

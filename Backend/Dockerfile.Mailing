@@ -1,0 +1,22 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+
+WORKDIR /src
+
+COPY ./Finora.Mailing ./Finora.Mailing
+COPY ./Finora.Messages ./Finora.Messages
+
+RUN dotnet restore Finora.Mailing/Finora.Mailing.csproj
+
+RUN dotnet build -c Release Finora.Mailing/Finora.Mailing.csproj
+
+RUN dotnet publish -c Release -o /app/publish Finora.Mailing/Finora.Mailing.csproj
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+EXPOSE 80
+
+ENTRYPOINT ["dotnet", "Finora.Mailing.dll"]

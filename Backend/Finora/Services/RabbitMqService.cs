@@ -78,7 +78,9 @@ namespace Finora.Web.Services
             if (_connection is null)
                 throw new Exception("Connection is not established");
 
-            return await _connection.CreateChannelAsync(null, ct);
+            var channel = await _connection.CreateChannelAsync(null, ct);
+            await channel.BasicQosAsync(0, 2, false);
+            return channel;
         }
 
         public async Task<(Guid messageId, Guid correlationId)> PublishMessage(

@@ -5,6 +5,7 @@ import { CurrentUserService } from '../../services/current-user.service';
 import { BankingService } from '../../services/banking.service';
 import { UserTransactionDTO } from '../../models/banking/bankTransaction.model';
 import { User } from '../../models/users/user.model';
+import { GetUserBalanceResponse } from '../../models/communication/banking';
 
 @Component({
   selector: 'app-home',
@@ -16,7 +17,9 @@ import { User } from '../../models/users/user.model';
 export class HomeComponent implements OnInit {
   currentUser: User | null = null;
   transactions: UserTransactionDTO[] = [];
+  userBalance: GetUserBalanceResponse | null = null;
   loading = false;
+  balanceLoading = false;
   currentPage = 1;
   pageSize = 10;
   totalTransactions = 0;
@@ -32,17 +35,23 @@ export class HomeComponent implements OnInit {
       this.currentUser = this.$currentUser();
       if (this.currentUser) {
         this.loadTransactions();
+        this.loadUserBalance();
       }
     });
   }
 
   ngOnInit() {
+    if (this.currentUser) {
+      this.loadTransactions();
+      this.loadUserBalance();
+    }
   }
 
   async loadTransactions() {
     if (!this.currentUser) return;
 
     this.loading = true;
+    debugger;
     try {
       const response = await this.bankingService.getUserTransactions(
         this.currentUser.id,
@@ -98,5 +107,19 @@ export class HomeComponent implements OnInit {
 
   getEndIndex(): number {
     return Math.min(this.currentPage * this.pageSize, this.totalTransactions);
+  }
+
+  async loadUserBalance() {
+    if (!this.currentUser) return;
+
+    this.balanceLoading = true;
+    try {
+      this.userBalance = await this.bankingService.getUserBalance(this.currentUser.id);
+    } catch (error) {
+      console.error('Error loading user balance:', error);
+      this.userBalance = null;
+    } finally {
+      this.balanceLoading = false;
+    }
   }
 }

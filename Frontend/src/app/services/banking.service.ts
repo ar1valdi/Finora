@@ -5,7 +5,10 @@ import {
   TransferMoneyRequest, 
   GetUserTransactionsRequest, 
   GetUserTransactionsResponse,
-  DepositWithdrawlRequest 
+  DepositWithdrawlRequest,
+  GetUserBalanceRequest,
+  GetUserBalanceResponse,
+  createGetUserBalanceRequest
 } from '../models/communication/banking';
 
 @Injectable({
@@ -45,5 +48,10 @@ export class BankingService {
     };
 
     return this.rabbitMqService.send(message);
+  }
+
+  public getUserBalance(userId: string): Promise<GetUserBalanceResponse> {
+    const request = createGetUserBalanceRequest(userId);
+    return this.rabbitMqService.send(request);
   }
 }

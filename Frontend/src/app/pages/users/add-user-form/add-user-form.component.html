@@ -3,9 +3,13 @@
         <div class="form-group">
             <label for="firstName">First Name</label>
             <input type="text" id="firstName" formControlName="firstName">
-            <div class="error-message" *ngIf="form.get('firstName')?.invalid && form.get('firstName')?.touched">
-                <span *ngIf="form.get('firstName')?.errors?.['required']">First name is required</span>
-            </div>
+            @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+                <div class="error-message">
+                    @if (form.get('firstName')?.errors?.['required']) {
+                        <span>First name is required</span>
+                    }
+                </div>
+            }
         </div>
         <div class="form-group">
             <label for="secondName">Second Name</label>
@@ -14,34 +18,54 @@
         <div class="form-group">
             <label for="lastName">Last Name</label>
             <input type="text" id="lastName" formControlName="lastName">
-            <div class="error-message" *ngIf="form.get('lastName')?.invalid && form.get('lastName')?.touched">
-                <span *ngIf="form.get('lastName')?.errors?.['required']">Last name is required</span>
-            </div>
+            @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+                <div class="error-message">
+                    @if (form.get('lastName')?.errors?.['required']) {
+                        <span>Last name is required</span>
+                    }
+                </div>
+            }
         </div>
         <div class="form-group">
             <label for="email">Email</label>
             <input type="email" id="email" formControlName="email">
-            <div class="error-message" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
-                <span *ngIf="form.get('email')?.errors?.['required']">Email is required</span>
-                <span *ngIf="form.get('email')?.errors?.['email']">Please enter a valid email address</span>
-            </div>
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
+                <div class="error-message">
+                    @if (form.get('email')?.errors?.['required']) {
+                        <span>Email is required</span>
+                    }
+                    @if (form.get('email')?.errors?.['email']) {
+                        <span>Please enter a valid email address</span>
+                    }
+                </div>
+            }
         </div>
         <div class="form-group">
             <label for="dateOfBirth">Date Of Birth</label>
             <input type="date" id="dateOfBirth" formControlName="dateOfBirth">
-            <div class="error-message" *ngIf="form.get('dateOfBirth')?.invalid && form.get('dateOfBirth')?.touched">
-                <span *ngIf="form.get('dateOfBirth')?.errors?.['required']">Date of birth is required</span>
-                <span *ngIf="form.get('dateOfBirth')?.errors?.['underage']">
-                    You must be at least 18 years old. Current age: {{ form.get('dateOfBirth')?.errors?.['underage']?.value }}
-                </span>
-            </div>
+            @if (form.get('dateOfBirth')?.invalid && form.get('dateOfBirth')?.touched) {
+                <div class="error-message">
+                    @if (form.get('dateOfBirth')?.errors?.['required']) {
+                        <span>Date of birth is required</span>
+                    }
+                    @if (form.get('dateOfBirth')?.errors?.['underage']) {
+                        <span>
+                            You must be at least 18 years old.
+                        </span>
+                    }
+                </div>
+            }
         </div>
         <div class="form-group">
             <label for="password">Password</label>
             <input type="password" id="password" formControlName="password">
-            <div class="error-message" *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
-                <span *ngIf="form.get('password')?.errors?.['required']">Password is required</span>
-            </div>
+            @if (form.get('password')?.invalid && form.get('password')?.touched) {
+                <div class="error-message">
+                    @if (form.get('password')?.errors?.['required']) {
+                        <span>Password is required</span>
+                    }
+                </div>
+            }
         </div>
         <button type="submit" [disabled]="form.invalid || isSubmitted">Submit</button>
     </form>
