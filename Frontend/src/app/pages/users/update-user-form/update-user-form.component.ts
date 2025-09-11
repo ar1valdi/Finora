@@ -38,7 +38,6 @@ export class UpdateUserFormComponent implements OnInit {
       this.user = await this.usersService.getUser(this.route.snapshot.params['id']);
       
       if (this.user) {
-        // Convert date string to YYYY-MM-DD format for date input
         const dateOfBirth = new Date(this.user.dateOfBirth).toISOString().split('T')[0];
         
         this.form.patchValue({
@@ -47,7 +46,7 @@ export class UpdateUserFormComponent implements OnInit {
           lastName: this.user.lastName,
           email: this.user.email,
           dateOfBirth: dateOfBirth,
-          password: '' // Don't pre-fill password for security
+          password: ''
         });
       }
     } catch (error) {

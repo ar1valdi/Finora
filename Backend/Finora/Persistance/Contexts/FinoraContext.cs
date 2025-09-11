@@ -22,7 +22,6 @@ namespace Finora.Persistance.Contexts
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(FinoraDbContext).Assembly);
 
-            // Configure DateTime properties to use timestamp without time zone
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 foreach (var property in entityType.GetProperties())
