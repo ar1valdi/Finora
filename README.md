@@ -11,3 +11,5 @@ Following design patterns implemented:
 - unit of work
 - handshake
 - timeouts
+
+Project is ready to be built after cloning, appsettings and .env contain example secret files that work in local environment. Change those in any form of deployment.
